@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista Profesor - SOLAR SYSTEM WAR</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .teacher-container {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .team-section {
+            flex: 1;
+            min-width: 400px;
+            max-width: 600px;
+        }
+        .team-section h2 {
+            text-align: center;
+            color: #00ffcc;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+            text-shadow: 0 0 10px #00ffcc;
+        }
+        .team1-title {
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+        .team2-title {
+            color: #ff6600;
+            text-shadow: 0 0 10px #ff6600;
+        }
+        .status-panel {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 255, 204, 0.1);
+            border: 2px solid #00ffcc;
+            border-radius: 10px;
+        }
+        .turn-indicator {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 1em;
+            background: #00ffcc;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #00ccaa;
+            transform: scale(1.05);
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .stat-item {
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #00ffcc;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            color: #888;
+        }
+        .stat-value {
+            font-size: 1.4em;
+            color: #00ffcc;
+            font-weight: bold;
+        }
+        canvas {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            aspect-ratio: 1;
+        }
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .session-modal-content {
+            background: #0a1a2a;
+            padding: 25px 30px;
+            border: 3px solid #00ffcc;
+            border-radius: 12px;
+            max-width: 520px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 35px rgba(0, 255, 204, 0.4);
+        }
+        .session-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .session-input {
+            padding: 10px 12px;
+            font-size: 1em;
+            border-radius: 6px;
+            border: 1px solid #00ffcc;
+            background: #06111d;
+            color: #fff;
+            text-transform: uppercase;
+            min-width: 220px;
+        }
+        .session-code-display {
+            margin-top: 10px;
+            font-size: 1.1em;
+            color: #00ffcc;
+            font-weight: bold;
+        }
+        .session-hint {
+            font-size: 0.9em;
+            color: #ccc;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; color: #00ffcc; text-shadow: 0 0 20px #00ffcc;">
+        🎮 VISTA DEL PROFESOR - SOLAR SYSTEM WAR 🚀
+    </h1>
+
+    <div id="session-modal" class="modal active">
+        <div class="session-modal-content">
+            <h2>🔑 Conectar partida</h2>
+            <div class="session-row">
+                <input id="session-code-input" class="session-input" placeholder="Código de partida" maxlength="8" />
+                <button onclick="joinSession()">Unirse</button>
+            </div>
+            <div class="session-hint">o</div>
+            <div class="session-row">
+                <button onclick="createSession()">Crear nueva partida</button>
+            </div>
+            <div class="session-hint">Comparte el código con los equipos.</div>
+        </div>
+    </div>
+
+    <div class="status-panel">
+        <div class="turn-indicator" id="turn-indicator">
+            Esperando inicio del juego...
+        </div>
+        <div class="controls">
+            <button onclick="resetGame()">🔄 Reiniciar Juego</button>
+            <button onclick="startGame()">▶️ Iniciar Juego</button>
+        </div>
+        <div id="session-code-display" class="session-code-display">Código: —</div>
+    </div>
+
+    <div class="teacher-container">
+        <div class="team-section">
+            <h2 class="team1-title">⚡ EQUIPO 1 - Ataques</h2>
+            <div class="canvas-container">
+                <canvas id="team1-canvas" width="800" height="800"></canvas>
+            </div>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-label">Ataques realizados</div>
+                    <div class="stat-value" id="team1-attacks">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Impactos</div>
+                    <div class="stat-value" id="team1-hits">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">🪐 Planetas destruidos</div>
+                    <div class="stat-value" id="team1-planets">0/8</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">⚛️ Materia Oscura</div>
+                    <div class="stat-value" id="team1-dark-matter" style="color: #8a2be2;">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="team-section">
+            <h2 class="team2-title">🔥 EQUIPO 2 - Ataques</h2>
+            <div class="canvas-container">
+                <canvas id="team2-canvas" width="800" height="800"></canvas>
+            </div>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-label">Ataques realizados</div>
+                    <div class="stat-value" id="team2-attacks">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Impactos</div>
+                    <div class="stat-value" id="team2-hits">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">🪐 Planetas destruidos</div>
+                    <div class="stat-value" id="team2-planets">0/8</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">⚛️ Materia Oscura</div>
+                    <div class="stat-value" id="team2-dark-matter" style="color: #8a2be2;">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game-state.js"></script>
+    <script>
+        const SIZE = 50;
+        const CELL_SIZE = 16;
+        const CANVAS_SIZE = 800;
+
+        const team1Canvas = document.getElementById('team1-canvas');
+        const team2Canvas = document.getElementById('team2-canvas');
+        const team1Ctx = team1Canvas.getContext('2d');
+        const team2Ctx = team2Canvas.getContext('2d');
+
+        function updateSessionDisplay() {
+            const el = document.getElementById('session-code-display');
+            if (el) {
+                el.textContent = `Código: ${GameState.sessionCode || '—'}`;
+            }
+        }
+
+        function closeSessionModal() {
+            const modal = document.getElementById('session-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function joinSession() {
+            const input = document.getElementById('session-code-input');
+            const code = input ? input.value : '';
+            GameState.setSession(code);
+            updateSessionDisplay();
+            closeSessionModal();
+        }
+
+        function createSession() {
+            const code = GameState.generateSessionCode();
+            GameState.setSession(code);
+            GameState.reset();
+            updateSessionDisplay();
+            closeSessionModal();
+        }
+
+        function drawTeacherView() {
+            const state = GameState.get();
+            if (!state) return;
+
+            // Dibujar ataques del equipo 1 sobre el tablero del equipo 2
+            drawAttacks(team1Ctx, state.team1Attacks, state.team2Board, state.team2Planets);
+            
+            // Dibujar ataques del equipo 2 sobre el tablero del equipo 1
+            drawAttacks(team2Ctx, state.team2Attacks, state.team1Board, state.team1Planets);
+
+            // Actualizar estadísticas
+            updateStats();
+
+            // Actualizar indicador de turno
+            updateTurnIndicator(state);
+
+            // Verificar ganador
+            const winner = GameState.checkWinner();
+            if (winner) {
+                document.getElementById('turn-indicator').innerHTML = 
+                    `🏆 ¡${winner === 'team1' ? 'EQUIPO 1' : 'EQUIPO 2'} HA GANADO! 🏆`;
+            }
+        }
+
+        updateSessionDisplay();
+        if (GameState.sessionCode) {
+            closeSessionModal();
+        }
+
+        function drawAttacks(ctx, attacks, targetBoard, targetPlanets) {
+            // Limpiar canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+            // Dibujar cuadrícula
+            ctx.strokeStyle = '#1a3a3a';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= SIZE; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * CELL_SIZE, 0);
+                ctx.lineTo(i * CELL_SIZE, CANVAS_SIZE);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(0, i * CELL_SIZE);
+                ctx.lineTo(CANVAS_SIZE, i * CELL_SIZE);
+                ctx.stroke();
+            }
+
+            // Dibujar ataques
+            for (let i = 0; i < attacks.length; i++) {
+                if (attacks[i] === 0) continue;
+
+                const x = i % SIZE;
+                const y = Math.floor(i / SIZE);
+                const cellX = x * CELL_SIZE;
+                const cellY = y * CELL_SIZE;
+
+                if (attacks[i] === 1) {
+                    // Agua - azul
+                    ctx.fillStyle = 'rgba(0, 100, 255, 0.6)';
+                } else if (attacks[i] === 2) {
+                    // Impacto - rojo
+                    ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+                }
+                ctx.fillRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
+            }
+        }
+
+        function getPlanetByName(name) {
+            const planets = [
+                { name: 'Júpiter', size: 20, color: '#C88B3A' },
+                { name: 'Saturno', size: 17, color: '#FAD5A5' },
+                { name: 'Neptuno', size: 8, color: '#4169E1' },
+                { name: 'Urano', size: 7, color: '#4FD0E7' },
+                { name: 'Tierra', size: 3, color: '#1E90FF' },
+                { name: 'Venus', size: 3, color: '#FFA500' },
+                { name: 'Marte', size: 2, color: '#CD5C5C' },
+                { name: 'Mercurio', size: 1, color: '#A9A9A9' }
+            ];
+            return planets.find(p => p.name === name);
+        }
+
+        function updateStats() {
+            const state = GameState.get();
+            
+            // Equipo 1
+            const team1AttackCount = state.team1Attacks.filter(a => a !== 0).length;
+            const team1HitCount = state.team1Attacks.filter(a => a === 2).length;
+            document.getElementById('team1-attacks').textContent = team1AttackCount;
+            document.getElementById('team1-hits').textContent = team1HitCount;
+            document.getElementById('team1-dark-matter').textContent = state.team1DarkMatter || 0;
+            
+            // Calcular planetas destruidos del equipo 2 (atacados por equipo 1)
+            const team2PlanetsDestroyed = countDestroyedPlanets(state.team1Attacks, state.team2Board, state.team2Planets);
+            document.getElementById('team1-planets').textContent = `${team2PlanetsDestroyed}/8`;
+
+            // Equipo 2
+            const team2AttackCount = state.team2Attacks.filter(a => a !== 0).length;
+            const team2HitCount = state.team2Attacks.filter(a => a === 2).length;
+            document.getElementById('team2-attacks').textContent = team2AttackCount;
+            document.getElementById('team2-hits').textContent = team2HitCount;
+            document.getElementById('team2-dark-matter').textContent = state.team2DarkMatter || 0;
+            
+            // Calcular planetas destruidos del equipo 1 (atacados por equipo 2)
+            const team1PlanetsDestroyed = countDestroyedPlanets(state.team2Attacks, state.team1Board, state.team1Planets);
+            document.getElementById('team2-planets').textContent = `${team1PlanetsDestroyed}/8`;
+        }
+
+        function countDestroyedPlanets(attacks, targetBoard, targetPlanets) {
+            let destroyed = 0;
+            for (const planetName in targetPlanets) {
+                const center = targetPlanets[planetName];
+                const planet = getPlanetByName(planetName);
+                if (!planet) continue;
+                
+                // Verificar si todas las celdas del planeta fueron destruidas
+                let allDestroyed = true;
+                const radius = planet.size / 2;
+                for (let dy = -Math.ceil(radius); dy <= Math.ceil(radius); dy++) {
+                    for (let dx = -Math.ceil(radius); dx <= Math.ceil(radius); dx++) {
+                        if (dx * dx + dy * dy <= radius * radius) {
+                            const x = center.x + dx;
+                            const y = center.y + dy;
+                            if (x >= 0 && x < SIZE && y >= 0 && y < SIZE) {
+                                const index = y * SIZE + x;
+                                if (attacks[index] !== 2) {
+                                    allDestroyed = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (!allDestroyed) break;
+                }
+                if (allDestroyed) destroyed++;
+            }
+            return destroyed;
+        }
+
+        function updateTurnIndicator(state) {
+            if (!state.gameStarted) {
+                document.getElementById('turn-indicator').innerHTML = 
+                    '⏸️ Esperando inicio del juego...';
+                return;
+            }
+
+            const winner = GameState.checkWinner();
+            if (winner) return;
+
+            if (state.currentTurn === 'team1') {
+                document.getElementById('turn-indicator').innerHTML = 
+                    '⚡ <span style="color: #00ff00;">TURNO DEL EQUIPO 1</span>';
+            } else {
+                document.getElementById('turn-indicator').innerHTML = 
+                    '🔥 <span style="color: #ff6600;">TURNO DEL EQUIPO 2</span>';
+            }
+        }
+
+        function resetGame() {
+            if (confirm('¿Resetear el juego? Esto reiniciará ambos equipos.')) {
+                GameState.reset();
+                drawTeacherView();
+            }
+        }
+
+        function startGame() {
+            const state = GameState.get();
+            const team1Ready = Object.keys(state.team1Planets || {}).length === 8;
+            const team2Ready = Object.keys(state.team2Planets || {}).length === 8;
+            
+            if (!team1Ready || !team2Ready) {
+                let msg = '⚠️ Ambos equipos deben colocar sus 8 planetas primero:\n';
+                if (!team1Ready) msg += `- Equipo 1: ${Object.keys(state.team1Planets || {}).length}/8 planetas\n`;
+                if (!team2Ready) msg += `- Equipo 2: ${Object.keys(state.team2Planets || {}).length}/8 planetas`;
+                alert(msg);
+                return;
+            }
+            GameState.startGame();
+            drawTeacherView();
+        }
+
+        // Escuchar cambios en el estado
+        GameState.onChange(drawTeacherView);
+
+        // Dibujar vista inicial
+        drawTeacherView();
+
+        // Actualizar cada segundo
+        setInterval(drawTeacherView, 1000);
+    </script>
+</body>
+</html>

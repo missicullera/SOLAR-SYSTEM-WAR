@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipo 1 - SOLAR SYSTEM WAR</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .weapons-header {
+            background: rgba(0, 0, 0, 0.85);
+            border: 3px solid #00ff00;
+            border-radius: 15px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+        }
+        .weapons-header h3 {
+            color: #00ff00;
+            text-align: center;
+            margin: 0 0 10px 0;
+            font-size: 0.95em;
+            text-shadow: 0 0 10px #00ff00;
+        }
+        .weapons-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .weapon-mini-card {
+            background: rgba(0, 255, 0, 0.05);
+            border: 2px solid #555;
+            border-radius: 6px;
+            padding: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: soft-light;
+            min-height: 68px;
+        }
+        .weapon-mini-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 0;
+        }
+        .weapon-mini-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        .weapon-mini-card:hover {
+            border-color: #00ff00;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+        }
+        .weapon-mini-card.equipped {
+            border-color: #00ff00;
+            background: rgba(0, 255, 0, 0.15);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+        .weapon-mini-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .weapon-mini-card.locked:hover {
+            border-color: #555;
+            transform: none;
+            box-shadow: none;
+        }
+        .weapon-mini-icon {
+            font-size: 1.5em;
+            margin-bottom: 2px;
+        }
+        .weapon-mini-name {
+            font-size: 0.62em;
+            font-weight: bold;
+            color: #00ff00;
+            margin-bottom: 2px;
+        }
+        .weapon-mini-cost {
+            font-size: 0.6em;
+            color: #8a2be2;
+            font-weight: bold;
+        }
+        .weapon-mini-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 1.2em;
+        }
+        .main-layout {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+            flex-direction: column;
+        }
+        .planets-info-panel {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            padding: 20px;
+            position: static;
+            max-height: none;
+            overflow-y: visible;
+            order: 0;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+        .planets-info-panel h3 {
+            color: #00ffff;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        #planets-list-container {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            width: 100%;
+        }
+        #planets-list-container {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
+        .planet-card {
+            background: rgba(0, 255, 255, 0.05);
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 0;
+            transition: all 0.3s;
+            font-size: 0.75em;
+            min-width: 0;
+        }
+        .planet-card:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+        .planet-card.placed {
+            border-color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+        }
+        .planet-header {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #333;
+        }
+        .planet-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #00ffff;
+            flex-shrink: 0;
+        }
+        .planet-name {
+            font-size: 0.95em;
+            font-weight: bold;
+            color: #00ffff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .planet-info-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 2px 0;
+            font-size: 0.8em;
+        }
+        .planet-info-label {
+            color: #888;
+        }
+        .planet-info-value {
+            color: #fff;
+            font-weight: bold;
+        }
+        .planet-status {
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .planet-status.not-placed {
+            background: rgba(255, 165, 0, 0.3);
+            color: #ffaa00;
+        }
+        .planet-status.placed {
+            background: rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+        }
+        .planet-status.destroyed {
+            background: rgba(255, 0, 0, 0.3);
+            color: #ff6666;
+        }
+        .game-container {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+        .board-section {
+            flex: 1;
+            min-width: 400px;
+            max-width: 600px;
+        }
+        .board-section h2 {
+            text-align: center;
+            color: #00ff00;
+            margin-bottom: 15px;
+            font-size: 1.6em;
+            text-shadow: 0 0 10px #00ff00;
+        }
+        .attack-section h2 {
+            color: #ff6600;
+            text-shadow: 0 0 10px #ff6600;
+        }
+        .status-panel {
+            text-align: center;
+            padding: 15px 20px;
+            background: rgba(0, 255, 0, 0.1);
+            border-bottom: 2px solid #00ff00;
+            border-radius: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 20px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 10px rgba(0, 255, 0, 0.3);
+        }
+        body {
+            padding-top: 110px;
+        }
+        .turn-indicator {
+            font-size: 0.95em;
+            font-weight: bold;
+            margin: 0;
+            text-align: center;
+            grid-column: 1 / -1;
+            order: -1;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 0;
+            flex-wrap: nowrap;
+        }
+        button {
+            padding: 8px 14px;
+            font-size: 0.85em;
+            background: #00ff00;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #00cc00;
+            transform: scale(1.05);
+        }
+        button:disabled {
+            background: #555;
+            color: #888;
+            cursor: not-allowed;
+            transform: none;
+        }
+        canvas {
+            width: 100%;
+            max-width: calc(50vw - 20px);
+            height: auto;
+            aspect-ratio: 1;
+        }
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+        }
+        .attack-canvas {
+            cursor: crosshair;
+        }
+        .game-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .board-section {
+            flex: 1;
+            min-width: 300px;
+            max-width: calc(50vw - 10px);
+        }
+        .planets-info-compact {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #0a1a2a;
+            padding: 40px;
+            border: 3px solid #00ff00;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.5);
+        }
+        .session-modal-content {
+            background: #0a1a2a;
+            padding: 25px 30px;
+            border: 2px solid #00ff00;
+            border-radius: 12px;
+            max-width: 520px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.4);
+        }
+        .session-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .session-input {
+            padding: 10px 12px;
+            font-size: 1em;
+            border-radius: 6px;
+            border: 1px solid #00ff00;
+            background: #06111d;
+            color: #fff;
+            text-transform: uppercase;
+            min-width: 220px;
+        }
+        .session-code-display {
+            margin-top: 8px;
+            font-size: 0.95em;
+            color: #00ff00;
+            font-weight: bold;
+        }
+        .status-modal-content {
+            background: #0a1a2a;
+            padding: 20px 25px;
+            border: 2px solid #00ff00;
+            border-radius: 12px;
+            max-width: 480px;
+            width: 85%;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.4);
+        }
+        .status-modal-message {
+            font-size: 1.1em;
+            line-height: 1.4;
+            color: #fff;
+        }
+        .modal-content h2 {
+            color: #00ff00;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .question-category {
+            background: rgba(0, 255, 0, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #00ff00;
+        }
+        .question-text {
+            font-size: 1.3em;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        .option-btn {
+            padding: 15px 20px;
+            font-size: 1.1em;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .option-btn:hover {
+            background: rgba(0, 255, 0, 0.3);
+            transform: translateX(10px);
+        }
+        .weapon-shop {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .weapon-card {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .weapon-card:hover {
+            background: rgba(0, 255, 0, 0.2);
+            transform: scale(1.05);
+        }
+        .weapon-card.active {
+            background: rgba(0, 255, 0, 0.3);
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+        .weapon-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        .weapon-cost {
+            color: #ffcc00;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .dark-matter-display {
+            background: rgba(138, 43, 226, 0.3);
+            border: 2px solid #8a2be2;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1em;
+        }
+        .dark-matter-amount {
+            font-size: 1.2em;
+            color: #8a2be2;
+            font-weight: bold;
+        }
+        .reward-animation {
+            animation: glow 1s ease-in-out infinite;
+        }
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 10px #8a2be2; }
+            50% { text-shadow: 0 0 30px #8a2be2; }
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; color: #00ff00; text-shadow: 0 0 20px #00ff00;">
+        ⚡ EQUIPO 1 - SOLAR SYSTEM WAR 🚀
+    </h1>
+
+    <div class="weapons-header">
+        <h3>🔫 Arsenal de Armas</h3>
+        <div id="weapons-grid-container" class="weapons-grid"></div>
+    </div>
+
+    <div class="status-panel">
+        <div class="dark-matter-display">
+            ⚛️ Materia Oscura: <span class="dark-matter-amount" id="dark-matter">0</span>
+        </div>
+        <div class="controls">
+            <button id="place-planets-btn" onclick="placePlanets()">🪐 Colocar Planetas</button>
+            <button id="ready-btn" onclick="markReady()" disabled>✅ Listo para Jugar</button>
+            <button id="shop-btn" onclick="openShop()">🛒 Tienda</button>
+        </div>
+        <div id="session-code-display" class="session-code-display">Código: —</div>
+        <div style="margin-top: 15px; font-size: 0.9em; color: #00ff00;">
+            Arma actual: <span id="current-weapon">🔹 Láser Pequeño</span>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="planets-info-panel">
+            <h3>🪐 Sistema Solar</h3>
+            <div id="planets-list-container"></div>
+        </div>
+        
+        <div style="flex: 1;">
+            <div class="game-container">
+                <div class="board-section">
+                    <h2>⚡ Tus Planetas</h2>
+            <div class="canvas-container">
+                <canvas id="player-canvas" width="800" height="800"></canvas>
+            </div>
+            <div class="planets-info-compact" id="planets-info">
+                Planetas: Esperando colocación...
+            </div>
+        </div>
+
+        <div class="board-section attack-section">
+            <h2>🎯 Atacar a Equipo 2</h2>
+            <div class="canvas-container">
+                <canvas id="attack-canvas" width="800" height="800" class="attack-canvas"></canvas>
+            </div>
+            <div class="planets-info-compact" id="attack-info">
+                Haz clic para atacar (solo en tu turno)
+            </div>
+        </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Estado -->
+    <div id="status-modal" class="modal">
+        <div class="status-modal-content">
+            <div id="status-message" class="status-modal-message"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Sesión -->
+    <div id="session-modal" class="modal active">
+        <div class="session-modal-content">
+            <h2>🔑 Unirse a partida</h2>
+            <div class="session-row">
+                <input id="session-code-input" class="session-input" placeholder="Código de partida" maxlength="8" />
+                <button onclick="joinSession()">Unirse</button>
+            </div>
+            <div style="font-size: 0.9em; color: #ccc;">Pide el código al profesor.</div>
+        </div>
+    </div>
+
+    <!-- Modal de Pregunta -->
+    <div id="question-modal" class="modal">
+        <div class="modal-content">
+            <h2>📚 Pregunta de Conocimiento</h2>
+            <div class="question-category" id="question-category">Categoría</div>
+            <div class="question-text" id="question-text">¿Pregunta?</div>
+            <div class="options" id="options-container"></div>
+            <div id="question-result" style="margin-top: 20px; font-size: 1.2em; text-align: center;"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Tienda -->
+    <div id="shop-modal" class="modal">
+        <div class="modal-content">
+            <h2>🛒 Tienda</h2>
+            <div class="dark-matter-display" style="margin-bottom: 20px;">
+                ⚛️ Materia Oscura: <span class="dark-matter-amount" id="shop-dark-matter">0</span>
+            </div>
+            <div class="weapon-shop" id="weapon-shop"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="closeShop()">Cerrar Tienda</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game-state.js"></script>
+    <script src="questions.js"></script>
+    <script src="weapons.js"></script>
+    <script>
+        const SIZE = 50;
+        const CELL_SIZE = 16;
+        const CANVAS_SIZE = 800;
+        const TEAM = 'team1';
+
+        const PLANETS = [
+            { name: 'Mercurio', size: 1, color: '#A9A9A9', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Mercury_in_color_-_Prockter07-edit1.jpg/240px-Mercury_in_color_-_Prockter07-edit1.jpg',
+              diameter: '4,879 km', temperature: '-180°C a 430°C', composition: 'Hierro, Níquel', distanceFromSun: '57.9 millones km', order: 1 },
+            { name: 'Venus', size: 3, color: '#FFA500', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Venus-real_color.jpg/240px-Venus-real_color.jpg',
+              diameter: '12,104 km', temperature: '462°C', composition: 'Roca, Ácido sulfúrico', distanceFromSun: '108.2 millones km', order: 2 },
+            { name: 'Tierra', size: 3, color: '#1E90FF', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/240px-The_Earth_seen_from_Apollo_17.jpg',
+              diameter: '12,742 km', temperature: '-88°C a 58°C', composition: 'Nitrógeno, Oxígeno, Agua', distanceFromSun: '149.6 millones km', order: 3 },
+            { name: 'Marte', size: 2, color: '#CD5C5C', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/OSIRIS_Mars_true_color.jpg/240px-OSIRIS_Mars_true_color.jpg',
+              diameter: '6,779 km', temperature: '-140°C a 20°C', composition: 'Óxido de hierro, CO₂', distanceFromSun: '227.9 millones km', order: 4 },
+            { name: 'Júpiter', size: 20, color: '#C88B3A', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Jupiter_and_its_shrunken_Great_Red_Spot.jpg/240px-Jupiter_and_its_shrunken_Great_Red_Spot.jpg',
+              diameter: '139,820 km', temperature: '-108°C', composition: 'Hidrógeno, Helio', distanceFromSun: '778.5 millones km', order: 5 },
+            { name: 'Saturno', size: 17, color: '#FAD5A5', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Saturn_during_Equinox.jpg/240px-Saturn_during_Equinox.jpg',
+              diameter: '116,460 km', temperature: '-138°C', composition: 'Hidrógeno, Helio', distanceFromSun: '1,434 millones km', order: 6 },
+            { name: 'Urano', size: 7, color: '#4FD0E7', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Uranus2.jpg/240px-Uranus2.jpg',
+              diameter: '50,724 km', temperature: '-197°C', composition: 'Hidrógeno, Helio, Metano', distanceFromSun: '2,871 millones km', order: 7 },
+            { name: 'Neptuno', size: 8, color: '#4169E1', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Neptune_-_Voyager_2_%2829347980845%29_flatten_crop.jpg/240px-Neptune_-_Voyager_2_%2829347980845%29_flatten_crop.jpg',
+              diameter: '49,244 km', temperature: '-201°C', composition: 'Hidrógeno, Helio, Metano', distanceFromSun: '4,495 millones km', order: 8 }
+        ];
+
+        let playerCanvas, attackCanvas;
+        let playerCtx, attackCtx;
+        let myBoard = new Array(SIZE * SIZE).fill(0);
+        let myPlanets = {};
+        let planetsPlaced = false;
+
+        function updateSessionDisplay() {
+            const el = document.getElementById('session-code-display');
+            if (el) {
+                el.textContent = `Código: ${GameState.sessionCode || '—'}`;
+            }
+        }
+
+        function closeSessionModal() {
+            const modal = document.getElementById('session-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function joinSession() {
+            const input = document.getElementById('session-code-input');
+            const code = input ? input.value : '';
+            GameState.setSession(code);
+            updateSessionDisplay();
+            closeSessionModal();
+        }
+        
+        // Cargar imágenes de planetas
+        const planetImages = {};
+        let imagesLoaded = 0;
+        PLANETS.forEach(planet => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = planet.image;
+            img.onload = () => {
+                imagesLoaded++;
+                if (imagesLoaded === PLANETS.length) {
+                    drawPlayerBoard();
+                }
+            };
+            planetImages[planet.name] = img;
+        });
+
+        function init() {
+            playerCanvas = document.getElementById('player-canvas');
+            attackCanvas = document.getElementById('attack-canvas');
+            playerCtx = playerCanvas.getContext('2d');
+            attackCtx = attackCanvas.getContext('2d');
+
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            if (code) {
+                GameState.setSession(code);
+            }
+            updateSessionDisplay();
+            const input = document.getElementById('session-code-input');
+            if (input && GameState.sessionCode) {
+                input.value = GameState.sessionCode;
+            }
+            if (code) {
+                closeSessionModal();
+            }
+
+            attackCanvas.addEventListener('click', handleAttackClick);
+            GameState.onChange(updateView);
+            updateView();
+            renderPlanetsList();
+        }
+
+        function placePlanets() {
+            myBoard = new Array(SIZE * SIZE).fill(0);
+            myPlanets = {};
+            
+            PLANETS.forEach(planet => {
+                let placed = false;
+                let attempts = 0;
+                while (!placed && attempts < 1000) {
+                    const centerX = Math.floor(Math.random() * (SIZE - planet.size)) + Math.floor(planet.size / 2);
+                    const centerY = Math.floor(Math.random() * (SIZE - planet.size)) + Math.floor(planet.size / 2);
+                    
+                    if (canPlacePlanet(myBoard, centerX, centerY, planet.size)) {
+                        placePlanetCircle(myBoard, centerX, centerY, planet.size);
+                        myPlanets[planet.name] = { x: centerX, y: centerY };
+                        placed = true;
+                    }
+                    attempts++;
+                }
+            });
+
+            planetsPlaced = true;
+            document.getElementById('ready-btn').disabled = false;
+            document.getElementById('place-planets-btn').disabled = true;
+            drawPlayerBoard();
+            updatePlanetsInfo();
+            renderPlanetsList();
+        }
+
+        function renderPlanetsList() {
+            const container = document.getElementById('planets-list-container');
+            container.innerHTML = '';
+            
+            // Ordenar planetas por distancia al sol
+            const sortedPlanets = [...PLANETS].sort((a, b) => a.order - b.order);
+            
+            sortedPlanets.forEach(planet => {
+                const isPlaced = myPlanets[planet.name] !== undefined;
+                const planetCard = document.createElement('div');
+                planetCard.className = 'planet-card' + (isPlaced ? ' placed' : '');
+                
+                let cellsInfo = '';
+                if (isPlaced) {
+                    const center = myPlanets[planet.name];
+                    cellsInfo = `<div class="planet-info-item">
+                        <span class="planet-info-label">🎯 Posición:</span>
+                        <span class="planet-info-value">(${center.x}, ${center.y})</span>
+                    </div>`;
+                }
+                
+                planetCard.innerHTML = `
+                    <div class="planet-header">
+                        <img src="${planet.image}" alt="${planet.name}" class="planet-icon" style="background: ${planet.color};">
+                        <div class="planet-name">${planet.name}</div>
+                    </div>
+                    <div class="planet-info-item">
+                        <span class="planet-info-label">📍 Distancia al Sol:</span>
+                        <span class="planet-info-value">${planet.distanceFromSun}</span>
+                    </div>
+                    <div class="planet-info-item">
+                        <span class="planet-info-label">📏 Diámetro:</span>
+                        <span class="planet-info-value">${planet.diameter}</span>
+                    </div>
+                    <div class="planet-info-item">
+                        <span class="planet-info-label">🌡️ Temperatura:</span>
+                        <span class="planet-info-value">${planet.temperature}</span>
+                    </div>
+                    <div class="planet-info-item">
+                        <span class="planet-info-label">⚗️ Composición:</span>
+                        <span class="planet-info-value">${planet.composition}</span>
+                    </div>
+                    <div class="planet-info-item">
+                        <span class="planet-info-label">🟢 Celdas:</span>
+                        <span class="planet-info-value">${planet.size} x ${planet.size}</span>
+                    </div>
+                    ${cellsInfo}
+                    <div class="planet-status ${isPlaced ? 'placed' : 'not-placed'}">
+                        ${isPlaced ? '✅ Colocado' : '⏳ Sin colocar'}
+                    </div>
+                `;
+                
+                container.appendChild(planetCard);
+            });
+        }
+
+        function canPlacePlanet(board, centerX, centerY, size) {
+            const radius = size / 2;
+            for (let dy = -Math.ceil(radius); dy <= Math.ceil(radius); dy++) {
+                for (let dx = -Math.ceil(radius); dx <= Math.ceil(radius); dx++) {
+                    if (dx * dx + dy * dy <= radius * radius) {
+                        const x = centerX + dx;
+                        const y = centerY + dy;
+                        if (x < 0 || x >= SIZE || y < 0 || y >= SIZE) return false;
+                        const index = y * SIZE + x;
+                        if (board[index] !== 0) return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function placePlanetCircle(board, centerX, centerY, size) {
+            const radius = size / 2;
+            for (let dy = -Math.ceil(radius); dy <= Math.ceil(radius); dy++) {
+                for (let dx = -Math.ceil(radius); dx <= Math.ceil(radius); dx++) {
+                    if (dx * dx + dy * dy <= radius * radius) {
+                        const x = centerX + dx;
+                        const y = centerY + dy;
+                        if (x >= 0 && x < SIZE && y >= 0 && y < SIZE) {
+                            const index = y * SIZE + x;
+                            board[index] = 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        let lastStatusMessage = '';
+        let lastStatusTime = 0;
+        let statusTimeoutId = null;
+
+        function showStatus(message, duration = 2000) {
+            const modal = document.getElementById('status-modal');
+            const msg = document.getElementById('status-message');
+            if (!modal || !msg) return;
+
+            if (message === lastStatusMessage && (Date.now() - lastStatusTime) < duration) return;
+            lastStatusMessage = message;
+            lastStatusTime = Date.now();
+
+            msg.innerHTML = message;
+            modal.classList.add('active');
+
+            if (statusTimeoutId) clearTimeout(statusTimeoutId);
+            statusTimeoutId = setTimeout(() => {
+                modal.classList.remove('active');
+            }, duration);
+        }
+
+        function markReady() {
+            GameState.setTeamPlanets(TEAM, myBoard, myPlanets);
+            document.getElementById('ready-btn').disabled = true;
+            showStatus('✅ Planetas registrados. Esperando al otro equipo...');
+        }
+
+        function drawPlayerBoard() {
+            const ctx = playerCtx;
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+            // Grid
+            ctx.strokeStyle = '#1a3a3a';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= SIZE; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * CELL_SIZE, 0);
+                ctx.lineTo(i * CELL_SIZE, CANVAS_SIZE);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * CELL_SIZE);
+                ctx.lineTo(CANVAS_SIZE, i * CELL_SIZE);
+                ctx.stroke();
+            }
+
+            // Planets
+            PLANETS.forEach(planet => {
+                if (!myPlanets[planet.name]) return;
+                const center = myPlanets[planet.name];
+                const centerX = (center.x + 0.5) * CELL_SIZE;
+                const centerY = (center.y + 0.5) * CELL_SIZE;
+                const radius = (planet.size / 2) * CELL_SIZE;
+
+                // Dibujar círculo base
+                ctx.fillStyle = planet.color;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Dibujar imagen del planeta si está cargada
+                const img = planetImages[planet.name];
+                if (img && img.complete && img.naturalWidth > 0) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                    ctx.clip();
+                    ctx.drawImage(img, centerX - radius, centerY - radius, radius * 2, radius * 2);
+                    ctx.restore();
+                }
+
+                // Borde verde
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Nombre del planeta
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(planet.name, centerX, centerY + radius + 12);
+            });
+
+            // Attacks received
+            const state = GameState.get();
+            if (state && state.team2Attacks) {
+                for (let i = 0; i < state.team2Attacks.length; i++) {
+                    if (state.team2Attacks[i] === 0) continue;
+                    const x = i % SIZE;
+                    const y = Math.floor(i / SIZE);
+                    const cellX = x * CELL_SIZE;
+                    const cellY = y * CELL_SIZE;
+
+                    if (state.team2Attacks[i] === 1) {
+                        ctx.fillStyle = 'rgba(0, 100, 255, 0.6)';
+                    } else if (state.team2Attacks[i] === 2) {
+                        ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+                    }
+                    ctx.fillRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
+                }
+            }
+        }
+
+        function drawAttackBoard() {
+            const ctx = attackCtx;
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+            // Grid
+            ctx.strokeStyle = '#1a3a3a';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= SIZE; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * CELL_SIZE, 0);
+                ctx.lineTo(i * CELL_SIZE, CANVAS_SIZE);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * CELL_SIZE);
+                ctx.lineTo(CANVAS_SIZE, i * CELL_SIZE);
+                ctx.stroke();
+            }
+
+            // My attacks
+            const state = GameState.get();
+            if (state && state.team1Attacks) {
+                for (let i = 0; i < state.team1Attacks.length; i++) {
+                    if (state.team1Attacks[i] === 0) continue;
+                    const x = i % SIZE;
+                    const y = Math.floor(i / SIZE);
+                    const cellX = x * CELL_SIZE;
+                    const cellY = y * CELL_SIZE;
+
+                    if (state.team1Attacks[i] === 1) {
+                        ctx.fillStyle = 'rgba(0, 100, 255, 0.7)';
+                    } else if (state.team1Attacks[i] === 2) {
+                        ctx.fillStyle = 'rgba(255, 0, 0, 0.9)';
+                    }
+                    ctx.fillRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
+                }
+            }
+        }
+
+        function handleAttackClick(e) {
+            const state = GameState.get();
+            if (!state || !state.gameStarted) {
+                document.getElementById('attack-info').textContent = '⏸️ El juego aún no ha comenzado';
+                return;
+            }
+
+            if (state.currentTurn !== TEAM) {
+                document.getElementById('attack-info').textContent = '⏳ No es tu turno';
+                return;
+            }
+
+            const rect = attackCanvas.getBoundingClientRect();
+            const scaleX = attackCanvas.width / rect.width;
+            const scaleY = attackCanvas.height / rect.height;
+            const canvasX = (e.clientX - rect.left) * scaleX;
+            const canvasY = (e.clientY - rect.top) * scaleY;
+
+            const gridX = Math.floor(canvasX / CELL_SIZE);
+            const gridY = Math.floor(canvasY / CELL_SIZE);
+            
+            // Guardar coordenadas del ataque y mostrar pregunta
+            window.pendingAttack = { gridX, gridY };
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const state = GameState.get();
+            const usedQuestions = state.team1UsedQuestions || [];
+            const question = getNewQuestion(usedQuestions);
+            
+            document.getElementById('question-category').textContent = question.category;
+            document.getElementById('question-text').textContent = question.question;
+            document.getElementById('question-result').textContent = '';
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = option;
+                btn.onclick = () => answerQuestion(index, question.correct, question.index);
+                optionsContainer.appendChild(btn);
+            });
+            
+            document.getElementById('question-modal').classList.add('active');
+        }
+
+        function answerQuestion(selected, correct, questionIndex) {
+            const resultDiv = document.getElementById('question-result');
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.style.pointerEvents = 'none';
+            
+            if (selected === correct) {
+                resultDiv.innerHTML = '<span style="color: #00ff00;">✅ ¡CORRECTO!</span><br>+10 Materia Oscura obtenida';
+                resultDiv.className = 'reward-animation';
+                GameState.addDarkMatter(TEAM, 10);
+            } else {
+                resultDiv.innerHTML = '<span style="color: #ff0000;">❌ Incorrecto</span><br>No se gana Materia Oscura';
+            }
+            
+            GameState.markQuestionUsed(TEAM, questionIndex);
+            
+            setTimeout(() => {
+                document.getElementById('question-modal').classList.remove('active');
+                executeAttack();
+            }, 2000);
+        }
+
+        function executeAttack() {
+            const { gridX, gridY } = window.pendingAttack;
+            const state = GameState.get();
+            const weaponType = state.team1Weapon || 'laser-pequeño';
+            
+            // Obtener patrón de ataque
+            const attackCells = getAttackPattern(weaponType, gridX, gridY, SIZE);
+            const indices = attackCells.map(cell => cell.index);
+            
+            const result = GameState.attack(TEAM, indices);
+            if (result.valid) {
+                document.getElementById('attack-info').textContent = result.message;
+                updateView();
+            } else {
+                document.getElementById('attack-info').textContent = result.message;
+            }
+        }
+
+        function openShop() {
+            const state = GameState.get();
+            document.getElementById('shop-dark-matter').textContent = state.team1DarkMatter || 0;
+            
+            const shopContainer = document.getElementById('weapon-shop');
+            shopContainer.innerHTML = '';
+            
+            Object.entries(WEAPONS).forEach(([type, weapon]) => {
+                const card = document.createElement('div');
+                card.className = 'weapon-card';
+                if (state.team1Weapon === type) {
+                    card.classList.add('active');
+                }
+                
+                card.innerHTML = `
+                    <div class="weapon-icon">${weapon.icon}</div>
+                    <div style="font-size: 1.1em; font-weight: bold;">${weapon.name}</div>
+                    <div style="margin: 10px 0; font-size: 0.9em;">${weapon.description}</div>
+                    <div class="weapon-cost">${weapon.cost > 0 ? weapon.cost + ' ⚛️' : 'GRATIS'}</div>
+                `;
+                
+                if (weapon.cost === 0 || state.team1DarkMatter >= weapon.cost) {
+                    card.onclick = () => buyWeapon(type, weapon.cost);
+                } else {
+                    card.style.opacity = '0.5';
+                    card.style.cursor = 'not-allowed';
+                }
+                
+                shopContainer.appendChild(card);
+            });
+            
+            document.getElementById('shop-modal').classList.add('active');
+        }
+
+        function closeShop() {
+            document.getElementById('shop-modal').classList.remove('active');
+        }
+
+        function buyWeapon(weaponType, cost) {
+            const result = GameState.buyWeapon(TEAM, weaponType, cost);
+            if (result.success) {
+                alert(result.message);
+                updateWeaponDisplay();
+                closeShop();
+            } else {
+                alert(result.message);
+            }
+        }
+
+        function updateWeaponDisplay() {
+            const state = GameState.get();
+            const weaponType = state.team1Weapon || 'laser-pequeño';
+            const weapon = WEAPONS[weaponType];
+            document.getElementById('current-weapon').textContent = `${weapon.icon} ${weapon.name}`;            renderInventory();
+        }
+
+        function renderInventory() {
+            const state = GameState.get();
+            const currentWeapon = state.team1Weapon || 'laser-peque\u00f1o';
+            const darkMatter = state.team1DarkMatter || 0;
+            const container = document.getElementById('weapons-grid-container');
+            
+            const weaponImages = {
+                'laser-pequeño': 'https://static.wikia.nocookie.net/ogamer/images/1/17/Xlarge_401.jpg/revision/latest?cb=20110107151744&path-prefix=es',
+                'laser-mediano': 'https://static.wikia.nocookie.net/ogamer/images/1/17/Xlarge_402.jpg/revision/latest?cb=20110107153718&path-prefix=es',
+                'laser-grande': 'https://static.wikia.nocookie.net/ogamer/images/b/b3/Xlarge_405.jpg/revision/latest?cb=20110107183907&path-prefix=es',
+                'rayo-destructor': 'https://static.wikia.nocookie.net/ogamer/images/f/f3/Xlarge_404.jpg/revision/latest?cb=20110107183310&path-prefix=es',
+                'bomba-planetaria': 'https://static.wikia.nocookie.net/ogamer/images/b/bb/Misil_interplanetario.gif/revision/latest?cb=20120405210437&path-prefix=es'
+            };
+            
+            container.innerHTML = '';
+            
+            Object.keys(WEAPONS).forEach(weaponKey => {
+                const weapon = WEAPONS[weaponKey];
+                const isEquipped = weaponKey === currentWeapon;
+                const canAfford = darkMatter >= weapon.cost;
+                const isLocked = weapon.cost > 0 && !canAfford && !isEquipped;
+                
+                const weaponDiv = document.createElement('div');
+                weaponDiv.className = 'weapon-mini-card';
+                weaponDiv.style.backgroundImage = `url('${weaponImages[weaponKey]}')`;
+                if (isEquipped) weaponDiv.classList.add('equipped');
+                if (isLocked) weaponDiv.classList.add('locked');
+                
+                weaponDiv.innerHTML = `
+                    ${isEquipped ? '<div class="weapon-mini-badge">\u2705</div>' : ''}
+                    ${isLocked ? '<div class="weapon-mini-badge">\ud83d\udd12</div>' : ''}
+                    <div class="weapon-mini-icon">${weapon.icon}</div>
+                    <div class="weapon-mini-name">${weapon.name}</div>
+                    <div class="weapon-mini-cost">${weapon.cost > 0 ? `${weapon.cost} \u26c6\ufe0f` : 'Gratis'}</div>
+                `;
+                
+                if (!isLocked && !isEquipped) {
+                    weaponDiv.onclick = () => selectWeaponFromInventory(weaponKey, weapon.cost);
+                }
+                
+                container.appendChild(weaponDiv);
+            });
+        }
+
+        function selectWeaponFromInventory(weaponType, cost) {
+            const state = GameState.get();
+            const darkMatter = state.team1DarkMatter || 0;
+            
+            if (cost > darkMatter) {
+                alert('\u26a0\ufe0f No tienes suficiente Materia Oscura');
+                return;
+            }
+            
+            if (cost > 0) {
+                if (confirm(`\u00bfDeseas cambiar a esta arma? Costar\u00e1 ${cost} \u26c6\ufe0f Materia Oscura`)) {
+                    GameState.buyWeapon('team1', weaponType, cost);
+                    updateWeaponDisplay();
+                }
+            } else {
+                GameState.update({ team1Weapon: weaponType });
+                updateWeaponDisplay();
+            }        }
+
+        function updateView() {
+            const state = GameState.get();
+            if (!state) return;
+
+            drawPlayerBoard();
+            drawAttackBoard();
+            updateTurnIndicator(state);
+            
+            // Actualizar Materia Oscura
+            document.getElementById('dark-matter').textContent = state.team1DarkMatter || 0;
+            updateWeaponDisplay();
+            renderInventory();
+
+            const winner = GameState.checkWinner();
+            if (winner) {
+                if (winner === TEAM) {
+                    showStatus('🏆 <span style="color: #00ff00;">¡VICTORIA!</span> 🏆', 4000);
+                } else {
+                    showStatus('💥 <span style="color: #ff0000;">Derrota</span> 💥', 4000);
+                }
+            }
+        }
+
+        function updateTurnIndicator(state) {
+            if (!state.gameStarted) {
+                showStatus(planetsPlaced ? 'Esperando inicio del juego...' : 'Coloca tus planetas');
+                return;
+            }
+
+            if (state.currentTurn === TEAM) {
+                showStatus('✅ <span style="color: #00ff00;">ES TU TURNO</span> - Haz clic en el panel de ataque');
+            } else {
+                showStatus('⏳ Esperando al Equipo 2...');
+            }
+        }
+
+        function updatePlanetsInfo() {
+            const planetNames = Object.keys(myPlanets).join(', ');
+            document.getElementById('planets-info').textContent = 
+                'Planetas colocados: ' + planetNames;
+            showStatus('✅ Planetas colocados. Haz clic en "Listo para Jugar"');
+        }
+
+        init();
+    </script>
+</body>
+</html>

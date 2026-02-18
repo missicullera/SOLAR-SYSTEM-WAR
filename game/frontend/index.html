@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOLAR SYSTEM WAR - Seleccionar Vista</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .menu-container {
+            text-align: center;
+            max-width: 800px;
+        }
+        h1 {
+            font-size: 3em;
+            color: #00ffcc;
+            text-shadow: 0 0 30px #00ffcc;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { text-shadow: 0 0 20px #00ffcc; }
+            50% { text-shadow: 0 0 40px #00ffcc; }
+        }
+        .subtitle {
+            font-size: 1.5em;
+            color: #fff;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+        .menu-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .menu-card {
+            background: rgba(0, 255, 204, 0.05);
+            border: 3px solid #00ffcc;
+            border-radius: 15px;
+            padding: 40px 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: block;
+        }
+        .menu-card:hover {
+            background: rgba(0, 255, 204, 0.15);
+            transform: translateY(-10px);
+            box-shadow: 0 10px 40px rgba(0, 255, 204, 0.4);
+        }
+        .menu-card .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        .menu-card h2 {
+            font-size: 1.8em;
+            color: #00ffcc;
+            margin-bottom: 15px;
+        }
+        .menu-card p {
+            font-size: 1em;
+            color: #ccc;
+            line-height: 1.6;
+        }
+        .profesor-card {
+            border-color: #00ffcc;
+        }
+        .profesor-card:hover {
+            box-shadow: 0 10px 40px rgba(0, 255, 204, 0.5);
+        }
+        .team1-card {
+            border-color: #00ff00;
+        }
+        .team1-card h2 {
+            color: #00ff00;
+        }
+        .team1-card:hover {
+            background: rgba(0, 255, 0, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 255, 0, 0.5);
+        }
+        .team2-card {
+            border-color: #ff6600;
+        }
+        .team2-card h2 {
+            color: #ff6600;
+        }
+        .team2-card:hover {
+            background: rgba(255, 102, 0, 0.15);
+            box-shadow: 0 10px 40px rgba(255, 102, 0, 0.5);
+        }
+        .instructions {
+            margin-top: 50px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #00ffcc;
+            border-radius: 10px;
+            text-align: left;
+        }
+        .instructions h3 {
+            color: #00ffcc;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        .instructions ol {
+            padding-left: 25px;
+        }
+        .instructions li {
+            margin-bottom: 15px;
+            line-height: 1.8;
+            color: #ccc;
+            font-size: 1.1em;
+        }
+        .instructions strong {
+            color: #00ffcc;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-container">
+        <h1>🚀 SOLAR SYSTEM WAR 🌌</h1>
+        <div class="subtitle">Juego Multijugador para el Aula</div>
+
+        <div class="menu-options">
+            <a href="profesor.html" class="menu-card profesor-card">
+                <div class="icon">👨‍🏫</div>
+                <h2>Vista Profesor</h2>
+                <p>Pantalla principal para seguir el juego y ver los ataques de ambos equipos en tiempo real</p>
+            </a>
+
+            <a href="equipo1.html" class="menu-card team1-card">
+                <div class="icon">⚡</div>
+                <h2>Equipo 1</h2>
+                <p>Coloca tus planetas y ataca al Equipo 2 en tu turno</p>
+            </a>
+
+            <a href="equipo2.html" class="menu-card team2-card">
+                <div class="icon">🔥</div>
+                <h2>Equipo 2</h2>
+                <p>Coloca tus planetas y ataca al Equipo 1 en tu turno</p>
+            </a>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 Instrucciones de Juego</h3>
+            <ol>
+                <li><strong>Profesor:</strong> Abre la Vista Profesor en una pantalla grande (proyector o pizarra digital)</li>
+                <li><strong>Equipo 1:</strong> Abre la vista del Equipo 1 en un dispositivo (tablet, portátil o PC)</li>
+                <li><strong>Equipo 2:</strong> Abre la vista del Equipo 2 en otro dispositivo</li>
+                <li><strong>Preparación:</strong> Cada equipo hace clic en "🪐 Colocar Planetas" para distribuir sus 8 planetas de forma aleatoria</li>
+                <li><strong>Confirmación:</strong> Cada equipo hace clic en "✅ Listo para Jugar" cuando estén preparados</li>
+                <li><strong>Inicio:</strong> El profesor hace clic en "▶️ Iniciar Juego" cuando ambos equipos estén listos</li>
+                <li><strong>Turnos:</strong> Los equipos se turnan para atacar haciendo clic en el cuadrante de ataque</li>
+                <li><strong>Objetivo:</strong> ¡Destruye todos los planetas enemigos antes que el equipo contrario! 🏆</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="game-state.js"></script>
+</body>
+</html>
