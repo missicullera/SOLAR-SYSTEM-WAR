@@ -1,4 +1,0 @@
-com\galactica\game\GameServerApplication.class
-com\galactica\game\controller\GameStateController.class
-com\galactica\game\model\GameState.class
-com\galactica\game\service\GameStateService.class
