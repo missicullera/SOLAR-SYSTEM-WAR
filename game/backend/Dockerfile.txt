@@ -1,6 +1,6 @@
 # --- ETAPA 1: CONSTRUCCIÓN (BUILD) ---
-# Usamos una imagen que tiene Maven y Java 17 para compilar
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+# Usamos una imagen que tiene Maven y Java 21 para compilar
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 
 # Copiamos los archivos de tu proyecto al contenedor
 WORKDIR /app
@@ -11,7 +11,7 @@ RUN mvn clean package -DskipTests
 
 # --- ETAPA 2: EJECUCIÓN (RUN) ---
 # Usamos una imagen ligera de Java para ejecutarlo
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 # Creamos una carpeta para la app
 WORKDIR /app
