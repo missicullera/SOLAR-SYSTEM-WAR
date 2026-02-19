@@ -1,5 +1,5 @@
 // Base de datos de preguntas para el juego
-const QUESTIONS = [
+let QUESTIONS = [
     // Ciencias
     {
         category: 'Ciencias',
@@ -176,3 +176,18 @@ function getNewQuestion(usedIndices = []) {
     const index = QUESTIONS.indexOf(question);
     return { ...question, index };
 }
+
+// Si el profesor subió una batería personalizada, sustituir las preguntas por defecto
+(function loadCustomQuestions() {
+    try {
+        const stored = localStorage.getItem('custom_questions');
+        if (stored) {
+            const custom = JSON.parse(stored);
+            if (Array.isArray(custom) && custom.length > 0) {
+                QUESTIONS = custom;
+            }
+        }
+    } catch (e) {
+        console.warn('No se pudieron cargar las preguntas personalizadas:', e);
+    }
+})();

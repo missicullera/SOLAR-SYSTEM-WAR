@@ -154,6 +154,88 @@
             color: #ccc;
             margin-top: 5px;
         }
+
+        /* ── CSV Upload Panel ───────────────────────── */
+        .csv-panel {
+            max-width: 860px;
+            margin: 24px auto 0;
+            background: rgba(0,0,0,0.75);
+            border: 2px solid #00ffcc;
+            border-radius: 12px;
+            padding: 20px 24px;
+        }
+        .csv-panel h2 {
+            color: #00ffcc;
+            margin: 0 0 6px 0;
+            font-size: 1.15em;
+            text-shadow: 0 0 8px #00ffcc;
+        }
+        .csv-panel p {
+            color: #aaa;
+            font-size: 0.88em;
+            margin: 0 0 14px 0;
+        }
+        .csv-drop-zone {
+            border: 2px dashed #00ffcc;
+            border-radius: 8px;
+            padding: 22px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: #aaa;
+            font-size: 0.92em;
+        }
+        .csv-drop-zone.drag-over {
+            background: rgba(0,255,204,0.08);
+        }
+        #csv-file-input { display: none; }
+        .csv-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+        .csv-actions button {
+            padding: 8px 16px;
+            font-size: 0.88em;
+        }
+        .btn-upload  { background: #00ffcc; color: #000; }
+        .btn-clear   { background: #ff4444; color: #fff; }
+        .btn-template{ background: #444;    color: #fff; }
+        .btn-template:hover { background: #666; }
+        .btn-clear:hover    { background: #cc2222; }
+        #csv-status {
+            margin-top: 12px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        #csv-preview {
+            margin-top: 14px;
+            max-height: 220px;
+            overflow-y: auto;
+            border: 1px solid #333;
+            border-radius: 6px;
+        }
+        #csv-preview table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8em;
+        }
+        #csv-preview th {
+            background: #0a2a1a;
+            color: #00ffcc;
+            padding: 6px 8px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+        }
+        #csv-preview td {
+            padding: 5px 8px;
+            border-bottom: 1px solid #1a2a1a;
+            color: #ccc;
+            vertical-align: top;
+        }
+        #csv-preview tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
     </style>
 </head>
 <body>
@@ -237,6 +319,31 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- ── Subir batería de preguntas CSV ─────────────────────────── -->
+    <div class="csv-panel">
+        <h2>📂 Batería de preguntas (CSV UTF-8)</h2>
+        <p>
+            Formato: <code>categoria, pregunta, opcion1, opcion2, opcion3, opcion4, correcta</code><br>
+            El campo <strong>correcta</strong> es el número de la respuesta correcta (1 a 4).
+            Puedes usar coma <code>,</code> o punto y coma <code>;</code> como separador.
+            Los equipos cargarán las preguntas automáticamente desde el navegador.
+        </p>
+
+        <div class="csv-drop-zone" id="csv-drop-zone" onclick="document.getElementById('csv-file-input').click()">
+            📄 Arrastra aquí tu fichero CSV o haz clic para seleccionarlo
+        </div>
+        <input type="file" id="csv-file-input" accept=".csv,text/csv">
+
+        <div class="csv-actions">
+            <button class="btn-upload"   onclick="document.getElementById('csv-file-input').click()">📂 Seleccionar CSV</button>
+            <button class="btn-template" onclick="downloadTemplate()">⬇️ Descargar plantilla</button>
+            <button class="btn-clear"    onclick="clearQuestions()">🗑️ Borrar preguntas personalizadas</button>
+        </div>
+
+        <div id="csv-status"></div>
+        <div id="csv-preview"></div>
     </div>
 
     <script src="game-state.js"></script>
@@ -468,6 +575,186 @@
 
         // Actualizar cada segundo
         setInterval(drawTeacherView, 1000);
+    </script>
+
+    <!-- ── CSV Upload Logic ─────────────────────────────────────── -->
+    <script>
+        // ── CSV parser (handles BOM, quoted fields, , or ; separator) ──
+        function parseCSV(text) {
+            // Remove UTF-8 BOM if present
+            if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+
+            // Detect separator: semicolon or comma
+            const firstLine = text.split(/\r?\n/)[0];
+            const sep = (firstLine.match(/;/g) || []).length >= (firstLine.match(/,/g) || []).length ? ';' : ',';
+
+            const lines = text.split(/\r?\n/).filter(l => l.trim());
+
+            // Tokenise one CSV row respecting quoted fields
+            function tokenise(line) {
+                const tokens = [];
+                let cur = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const ch = line[i];
+                    if (ch === '"') {
+                        if (inQuotes && line[i+1] === '"') { cur += '"'; i++; }
+                        else inQuotes = !inQuotes;
+                    } else if (ch === sep && !inQuotes) {
+                        tokens.push(cur.trim()); cur = '';
+                    } else {
+                        cur += ch;
+                    }
+                }
+                tokens.push(cur.trim());
+                return tokens;
+            }
+
+            const questions = [];
+            const errors = [];
+
+            lines.forEach((line, idx) => {
+                const cols = tokenise(line);
+                // Skip header-like rows
+                if (idx === 0 && isNaN(Number(cols[cols.length - 1]))) return;
+
+                if (cols.length < 7) {
+                    errors.push(`Fila ${idx+1}: faltan columnas (${cols.length}/7)`);
+                    return;
+                }
+
+                const [categoria, pregunta, op1, op2, op3, op4, rawCorrect] = cols;
+                const correctaNum = parseInt(rawCorrect, 10);
+
+                if (!pregunta) { errors.push(`Fila ${idx+1}: pregunta vacía`); return; }
+                if (isNaN(correctaNum) || correctaNum < 1 || correctaNum > 4) {
+                    errors.push(`Fila ${idx+1}: 'correcta' debe ser 1-4, encontré "${rawCorrect}"`);
+                    return;
+                }
+
+                questions.push({
+                    category: categoria || 'General',
+                    question:  pregunta,
+                    options:   [op1, op2, op3, op4],
+                    correct:   correctaNum - 1   // convertir a índice 0-based
+                });
+            });
+
+            return { questions, errors };
+        }
+
+        // ── Load & save ──────────────────────────────────────────────
+        function applyQuestions(questions, filename) {
+            localStorage.setItem('custom_questions', JSON.stringify(questions));
+            showStatus(`✅ ${questions.length} preguntas cargadas desde "${filename}". Los equipos las usarán al recargar.`, '#00ffcc');
+            renderPreview(questions);
+        }
+
+        function clearQuestions() {
+            if (!confirm('¿Borrar la batería personalizada y volver a las preguntas por defecto?')) return;
+            localStorage.removeItem('custom_questions');
+            showStatus('🗑️ Preguntas personalizadas eliminadas. Se usarán las preguntas por defecto.', '#ffaa00');
+            document.getElementById('csv-preview').innerHTML = '';
+        }
+
+        function showStatus(msg, color) {
+            const el = document.getElementById('csv-status');
+            el.style.color = color || '#fff';
+            el.textContent = msg;
+        }
+
+        function renderPreview(questions) {
+            const preview = document.getElementById('csv-preview');
+            if (!questions.length) { preview.innerHTML = ''; return; }
+            const rows = questions.slice(0, 50).map((q, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${escHtml(q.category)}</td>
+                    <td>${escHtml(q.question)}</td>
+                    <td>${q.options.map((o,j) => `<span style="${j===q.correct?'color:#00ffcc;font-weight:bold':''}">${j+1}. ${escHtml(o)}</span>`).join('<br>')}</td>
+                </tr>`).join('');
+            preview.innerHTML = `
+                <table>
+                    <thead><tr><th>#</th><th>Categoría</th><th>Pregunta</th><th>Opciones (✔ correcta)</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>${questions.length > 50 ? `<p style="color:#aaa;text-align:center;padding:6px;">… y ${questions.length-50} más</p>` : ''}`;
+        }
+
+        function escHtml(s) {
+            return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        // ── File input handler ────────────────────────────────────────
+        document.getElementById('csv-file-input').addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const { questions, errors } = parseCSV(e.target.result);
+                if (errors.length) {
+                    showStatus(`⚠️ Se encontraron ${errors.length} error(es):\n` + errors.slice(0,5).join('\n'), '#ff9900');
+                }
+                if (questions.length === 0) {
+                    showStatus('❌ No se pudo cargar ninguna pregunta. Revisa el formato del CSV.', '#ff4444');
+                    return;
+                }
+                applyQuestions(questions, file.name);
+            };
+            reader.readAsText(file, 'UTF-8');
+            this.value = ''; // allow re-upload same file
+        });
+
+        // ── Drag & drop ───────────────────────────────────────────────
+        const dropZone = document.getElementById('csv-drop-zone');
+        dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const { questions, errors } = parseCSV(ev.target.result);
+                if (errors.length) showStatus(`⚠️ ${errors.length} error(es) encontrados: ` + errors.slice(0,3).join(' | '), '#ff9900');
+                if (questions.length === 0) { showStatus('❌ CSV vacío o mal formateado.', '#ff4444'); return; }
+                applyQuestions(questions, file.name);
+            };
+            reader.readAsText(file, 'UTF-8');
+        });
+
+        // ── Template download ─────────────────────────────────────────
+        function downloadTemplate() {
+            const header = 'categoria,pregunta,opcion1,opcion2,opcion3,opcion4,correcta';
+            const rows = [
+                'Ciencias,¿Cuál es el planeta más grande del sistema solar?,Tierra,Júpiter,Saturno,Neptuno,2',
+                'Matemáticas,¿Cuánto es 7 × 8?,54,56,58,60,2',
+                'Geografía,¿Cuál es la capital de España?,Barcelona,Madrid,Valencia,Sevilla,2',
+                'Historia,¿En qué año se descubrió América?,1492,1500,1482,1502,1',
+                'Cultura,¿Cuántos colores tiene el arcoíris?,5,6,7,8,3',
+            ];
+            const csv = '\uFEFF' + [header, ...rows].join('\r\n');  // BOM para Excel
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'plantilla_preguntas.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ── Show already-loaded questions on page load ────────────────
+        (function() {
+            try {
+                const stored = localStorage.getItem('custom_questions');
+                if (stored) {
+                    const q = JSON.parse(stored);
+                    if (q && q.length) {
+                        showStatus(`ℹ️ ${q.length} preguntas personalizadas activas en este navegador.`, '#00ffcc');
+                        renderPreview(q);
+                    }
+                }
+            } catch(e) {}
+        })();
     </script>
 </body>
 </html>
