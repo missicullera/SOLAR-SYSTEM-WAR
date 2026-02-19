@@ -73,6 +73,8 @@ const GameState = {
             team2Weapon: 'laser-pequeño', // Arma actual del equipo 2
             team1UsedQuestions: [], // Preguntas ya usadas por equipo 1
             team2UsedQuestions: [], // Preguntas ya usadas por equipo 2
+            team1SpyReveals: new Array(2500).fill(0), // 0=sin escanear 1=vacío 2=planeta detectado
+            team2SpyReveals: new Array(2500).fill(0),
             pendingQuestion: null, // Pregunta pendiente de responder
             currentTurn: 'team1',
             gameStarted: false,
@@ -125,6 +127,34 @@ const GameState = {
             state.team2Planets = planets;
         }
         this.set(state);
+    },
+
+    // Escanear un sector con la sonda (sin atacar, cambia el turno)
+    spySector(spyingTeam, targetIndices) {
+        const state = this.get();
+        const targetBoard = spyingTeam === 'team1' ? state.team2Board : state.team1Board;
+        const revealsKey  = spyingTeam === 'team1' ? 'team1SpyReveals' : 'team2SpyReveals';
+        if (!state[revealsKey]) state[revealsKey] = new Array(2500).fill(0);
+
+        let planetsFound = 0;
+        for (const idx of targetIndices) {
+            if (idx < 0 || idx >= 2500) continue;
+            // No sobreescribir ataques ya realizados
+            const attacksKey = spyingTeam === 'team1' ? 'team1Attacks' : 'team2Attacks';
+            if (state[attacksKey][idx] !== 0) continue;
+            const hasPlanet = targetBoard[idx] === 1;
+            state[revealsKey][idx] = hasPlanet ? 2 : 1;
+            if (hasPlanet) planetsFound++;
+        }
+
+        // La sonda gasta el turno
+        state.currentTurn = spyingTeam === 'team1' ? 'team2' : 'team1';
+        this.set(state);
+        return {
+            valid: true,
+            planetsFound,
+            message: `🛸 Sector escaneado: ${planetsFound > 0 ? '⚠️ ' + planetsFound + ' señal(es) de planeta detectada(s)' : '✅ Área despejada'}`
+        };
     },
 
     // Registrar un ataque (soporta múltiples celdas)

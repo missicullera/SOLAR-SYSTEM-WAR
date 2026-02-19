@@ -12,7 +12,7 @@ const PLANETS = [
         temperature: '-110°C',
         composition: 'Hidrógeno, Helio',
         type: 'Gigante de Gas',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Jupiter_and_its_shrunken_Great_Red_Spot.jpg/240px-Jupiter_and_its_shrunken_Great_Red_Spot.jpg'
+        image: 'img/planetas/jupiter.jpg'
     },
     { 
         name: 'Saturno', 
@@ -22,7 +22,7 @@ const PLANETS = [
         temperature: '-140°C',
         composition: 'Hidrógeno, Helio',
         type: 'Gigante de Gas',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Saturn_during_Equinox.jpg/240px-Saturn_during_Equinox.jpg'
+        image: 'img/planetas/saturno.jpg'
     },
     { 
         name: 'Neptuno', 
@@ -32,7 +32,7 @@ const PLANETS = [
         temperature: '-200°C',
         composition: 'Metano, Hidrógeno, Helio',
         type: 'Gigante de Hielo',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Neptune_-_Voyager_2_%2829347980845%29_flatten_crop.jpg/240px-Neptune_-_Voyager_2_%2829347980845%29_flatten_crop.jpg'
+        image: 'img/planetas/neptuno.jpg'
     },
     { 
         name: 'Urano', 
@@ -42,7 +42,7 @@ const PLANETS = [
         temperature: '-195°C',
         composition: 'Metano, Hielo',
         type: 'Gigante de Hielo',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Uranus2.jpg/240px-Uranus2.jpg'
+        image: 'img/planetas/urano.jpg'
     },
     { 
         name: 'Tierra', 
@@ -52,7 +52,7 @@ const PLANETS = [
         temperature: '15°C (media)',
         composition: 'Silicatos, Hierro',
         type: 'Rocoso',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/240px-The_Earth_seen_from_Apollo_17.jpg'
+        image: 'img/planetas/tierra.jpg'
     },
     { 
         name: 'Venus', 
@@ -62,7 +62,7 @@ const PLANETS = [
         temperature: '464°C',
         composition: 'Silicatos, CO₂',
         type: 'Rocoso',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Venus-real_color.jpg/240px-Venus-real_color.jpg'
+        image: 'img/planetas/venus.jpg'
     },
     { 
         name: 'Marte', 
@@ -72,7 +72,7 @@ const PLANETS = [
         temperature: '-65°C (media)',
         composition: 'Silicatos, Óxido de Hierro',
         type: 'Rocoso',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/OSIRIS_Mars_true_color.jpg/240px-OSIRIS_Mars_true_color.jpg'
+        image: 'img/planetas/marte.jpg'
     },
     { 
         name: 'Mercurio', 
@@ -82,7 +82,7 @@ const PLANETS = [
         temperature: '167°C',
         composition: 'Silicatos, Hierro',
         type: 'Rocoso',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Mercury_in_color_-_Prockter07-edit1.jpg/240px-Mercury_in_color_-_Prockter07-edit1.jpg'
+        image: 'img/planetas/mercurio.jpg'
     }
 ];
 

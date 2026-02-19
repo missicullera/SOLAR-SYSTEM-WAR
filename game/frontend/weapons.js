@@ -44,6 +44,21 @@ const WEAPONS = {
         ], // Diamante grande
         cost: 75,
         description: 'Ataque devastador en diamante (13 celdas)'
+    },
+    'sonda-espionaje': {
+        name: 'Sonda de Espionaje',
+        icon: '🛸',
+        // Sector 10×10 centrado en la celda seleccionada
+        pattern: (() => {
+            const p = [];
+            for (let dy = -4; dy <= 5; dy++)
+                for (let dx = -4; dx <= 5; dx++)
+                    p.push([dx, dy]);
+            return p; // 100 celdas
+        })(),
+        cost: 60,
+        spy: true,   // <-- NO ataca, solo revela
+        description: 'Escanea un sector 10×10 sin atacar — muestra planetas enemigos ocultos'
     }
 };
 
