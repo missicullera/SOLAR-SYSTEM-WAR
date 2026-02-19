@@ -337,20 +337,24 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.9);
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .modal.active {
             display: flex;
         }
         .modal-content {
             background: #0a1a2a;
-            padding: 40px;
+            padding: 25px 20px;
             border: 3px solid #ff6600;
             border-radius: 15px;
-            max-width: 600px;
-            width: 90%;
+            max-width: 700px;
+            width: 100%;
             box-shadow: 0 0 40px rgba(255, 102, 0, 0.5);
+            margin: auto;
         }
         .session-modal-content {
             background: #0a1a2a;
@@ -440,36 +444,75 @@
         }
         .weapon-shop {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
         }
         .weapon-card {
-            background: rgba(255, 102, 0, 0.1);
+            background: rgba(255, 102, 0, 0.08);
             border: 2px solid #ff6600;
             border-radius: 10px;
-            padding: 20px;
+            padding: 12px 8px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
         }
         .weapon-card:hover {
             background: rgba(255, 102, 0, 0.2);
-            transform: scale(1.05);
+            box-shadow: 0 0 12px rgba(255,102,0,0.4);
         }
         .weapon-card.active {
-            background: rgba(255, 102, 0, 0.3);
+            background: rgba(255, 102, 0, 0.25);
             border-color: #ff6600;
             box-shadow: 0 0 20px rgba(255, 102, 0, 0.5);
         }
+        .weapon-card-img {
+            width: 56px;
+            height: 56px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+        .weapon-card-name {
+            font-size: 0.8em;
+            font-weight: bold;
+            color: #fff;
+            line-height: 1.2;
+        }
+        .weapon-card-desc {
+            font-size: 0.68em;
+            color: #aaa;
+            line-height: 1.2;
+        }
         .weapon-icon {
-            font-size: 3em;
-            margin-bottom: 10px;
+            font-size: 2em;
+            margin-bottom: 4px;
         }
         .weapon-cost {
             color: #ffcc00;
             font-weight: bold;
-            margin-top: 10px;
+            font-size: 0.85em;
+            margin-top: 4px;
+        }
+        .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .shop-dm-badge {
+            background: rgba(138,43,226,0.25);
+            border: 1px solid #8a2be2;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #c084fc;
         }
         .dark-matter-display {
             background: rgba(138, 43, 226, 0.3);
@@ -490,6 +533,65 @@
         @keyframes glow {
             0%, 100% { text-shadow: 0 0 10px #8a2be2; }
             50% { text-shadow: 0 0 30px #8a2be2; }
+        }
+
+        /* Arsenal weapon tooltip */
+        .compact-weapon-card {
+            position: relative;
+        }
+        .weapon-arsenal-tooltip {
+            display: none;
+            position: fixed;
+            top: auto;
+            left: auto;
+            z-index: 9999;
+            background: rgba(4, 12, 28, 0.98);
+            border: 1px solid #ff6600;
+            border-radius: 8px;
+            padding: 10px 12px;
+            width: 185px;
+            pointer-events: none;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.95);
+            font-size: 0.78em;
+            text-align: left;
+            line-height: 1.5;
+            white-space: normal;
+            opacity: 1 !important;
+        }
+        .compact-weapon-card:hover .weapon-arsenal-tooltip {
+            /* handled by JS mouseenter/mouseleave */
+        }
+        .weapon-tooltip-img {
+            width: 100%;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 7px;
+        }
+        .weapon-tooltip-name {
+            font-weight: bold;
+            font-size: 1.05em;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        .weapon-tooltip-row {
+            color: #b0c4de;
+            margin: 2px 0;
+        }
+        .weapon-tooltip-cost {
+            color: #a855f7;
+            font-weight: bold;
+            margin-top: 6px;
+            font-size: 0.95em;
+        }
+        .weapon-tooltip-equipped {
+            color: #ff6600;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+        .weapon-tooltip-locked {
+            color: #ff4444;
+            margin-top: 4px;
         }
 
         /* ----------------------------------------
@@ -576,9 +678,12 @@
             .question-text        { font-size: 0.95em; margin: 12px 0; }
             .option-btn           { padding: 10px 12px; font-size: 0.90em; }
             .option-btn:hover     { transform: none; }
-            .weapon-shop          { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .weapon-card          { padding: 10px 6px; }
-            .weapon-icon          { font-size: 2em; }
+            .weapon-shop          { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+            .weapon-card          { padding: 8px 4px; }
+            .weapon-card-img      { width: 44px; height: 44px; }
+            .weapon-icon          { font-size: 1.6em; }
+            .weapon-card-name     { font-size: 0.75em; }
+            .weapon-card-desc     { display: none; }
             .session-modal-content { padding: 18px 14px; }
             .session-input        { min-width: 0; width: 100%; }
             .session-row          { flex-direction: column; align-items: center; }
@@ -602,16 +707,16 @@
             <div style="display:flex; align-items:center; gap:8px;">
                 <h1 style="margin:0; font-size:1.1em; color:#ff6600; text-shadow:0 0 5px #ff6600; white-space:nowrap;">⚡ EQUIPO 2</h1>
                 <div class="dark-matter-display" style="padding:2px 6px; font-size:0.85em; border:1px solid #8a2be2; background:rgba(138,43,226,0.15); border-radius:4px; display:flex; align-items:center;">
-                    <span style="color:#aaa;">⚛️</span>
+                    <span style="color:#aaa;">⚫</span>
                     <span class="dark-matter-amount" id="dark-matter" style="font-size:1.1em; font-weight:bold; margin-left:4px; color:#8a2be2;">0</span>
-                    <button id="sound-toggle-btn" onclick="SoundEngine.toggleMute()" title="Sonido" style="margin-left:6px; background:transparent; border:none; padding:0; cursor:pointer; font-size:1.1em;">⚛️</button>
+                    <button id="sound-toggle-btn" onclick="SoundEngine.toggleMute()" title="Sonido" style="margin-left:6px; background:transparent; border:none; padding:0; cursor:pointer; font-size:1.1em;">🔊</button>
                 </div>
             </div>
 
             <div class="controls" style="display:flex; gap:5px; margin:0;">
-                <button id="place-planets-btn" onclick="placePlanets()" style="padding:4px 8px; font-size:0.85em; margin:0;">⚛️ Colocar</button>
+                <button id="place-planets-btn" onclick="placePlanets()" style="padding:4px 8px; font-size:0.85em; margin:0;">🪐 Colocar</button>
                 <button id="ready-btn" onclick="markReady()" disabled style="padding:4px 8px; font-size:0.85em; margin:0;">✅ Listo</button>
-                <button id="shop-btn" onclick="openShop()" style="padding:4px 8px; font-size:0.85em; margin:0;">⚛️ Tienda</button>
+                <button id="shop-btn" onclick="openShop()" style="padding:4px 8px; font-size:0.85em; margin:0;">🛒 Tienda</button>
             </div>
 
             <div id="session-code-display" class="session-code-display" style="font-size:0.9em; margin:0; color:#ff6600; font-weight:bold;">Cód: ——</div>
@@ -620,14 +725,14 @@
         <!-- Bottom Row: Weapons - Single Line -->
         <div style="margin-top:5px; padding-top:5px; border-top:1px solid #333; display:flex; align-items:center; gap:15px;">
             <div style="display:flex; align-items:center; gap:10px; white-space:nowrap;">
-                <h3 style="margin:0; font-size:0.95em; color:#ff6600;">⚛️ Arsenal</h3>
-                <span style="font-size:0.85em; color:#aaa;">Arma: <span id="current-weapon" style="color:#ff6600; font-weight:bold;">⚛️ LÁser PequeÑo</span></span>
+                <h3 style="margin:0; font-size:0.95em; color:#ff6600;">⚔️ Arsenal</h3>
+                <span style="font-size:0.85em; color:#aaa;">Arma: <span id="current-weapon" style="color:#ff6600; font-weight:bold;">🔹 Láser Pequeño</span></span>
             </div>
-            <div id="weapons-grid-container" class="weapons-grid" style="display:flex; gap:5px; overflow-x:auto; padding-bottom:2px; flex:1;"></div>
+            <div id="weapons-grid-container" class="weapons-grid" style="display:flex; gap:5px; flex-wrap:nowrap;"></div>
         </div>
     </div><div class="main-layout">
         <div class="planets-info-panel">
-            <h3>⚛️ Sistema Solar</h3>
+            <h3>🌌 Sistema Solar</h3>
             <div id="planets-list-container"></div>
         </div>
         
@@ -644,7 +749,7 @@
         </div>
 
         <div class="board-section attack-section">
-            <h2>⚛️ Atacar a Equipo 1</h2>
+            <h2>🎯 Atacar a Equipo 1</h2>
             <div class="canvas-container">
                 <canvas id="attack-canvas" width="800" height="800" class="attack-canvas"></canvas>
             </div>
@@ -666,7 +771,7 @@
     <!-- Modal de SesiÓn -->
     <div id="session-modal" class="modal active">
         <div class="session-modal-content">
-            <h2>⚛️ Unirse a partida</h2>
+            <h2>🚀 Unirse a partida</h2>
             <div class="session-row">
                 <input id="session-code-input" class="session-input" placeholder="CÓdigo de partida" maxlength="8" />
                 <button onclick="joinSession()">Unirse</button>
@@ -678,7 +783,7 @@
     <!-- Modal de Pregunta -->
     <div id="question-modal" class="modal">
         <div class="modal-content">
-            <h2>⚛️ Pregunta de Conocimiento</h2>
+            <h2>🧠 Pregunta de Conocimiento</h2>
             <div class="question-category" id="question-category">CategorÍa</div>
             <div class="question-text" id="question-text">¿¿Pregunta?</div>
             <div class="options" id="options-container"></div>
@@ -689,14 +794,12 @@
     <!-- Modal de Tienda -->
     <div id="shop-modal" class="modal">
         <div class="modal-content">
-            <h2>⚛️ Tienda</h2>
-            <div class="dark-matter-display" style="margin-bottom: 20px;">
-                ⚛️ Materia Oscura: <span class="dark-matter-amount" id="shop-dark-matter">0</span>
+            <div class="shop-header">
+                <h2 style="margin:0; color:#ff6600; font-size:1.2em;">🛒 Tienda de Armas</h2>
+                <div class="shop-dm-badge">⚫ <span id="shop-dark-matter">0</span></div>
+                <button onclick="closeShop()" style="padding:4px 12px; font-size:0.85em;">✖ Cerrar</button>
             </div>
             <div class="weapon-shop" id="weapon-shop"></div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button onclick="closeShop()">Cerrar Tienda</button>
-            </div>
         </div>
     </div>
 
@@ -844,7 +947,7 @@
                 if (isPlaced) {
                     const center = myPlanets[planet.name];
                     cellsInfo = `<div class="planet-info-item">
-                        <span class="planet-info-label">⚛️ PosiciÓn:</span>
+                        <span class="planet-info-label">📍 Posición:</span>
                         <span class="planet-info-value">(${center.x}, ${center.y})</span>
                     </div>`;
                 }
@@ -857,28 +960,28 @@
                         <div class="planet-name">${planet.name}</div>
                     </div>
                     <div class="planet-info-item">
-                        <span class="planet-info-label">⚛️ Distancia al Sol:</span>
+                        <span class="planet-info-label">☀️ Distancia al Sol:</span>
                         <span class="planet-info-value">${planet.distanceFromSun}</span>
                     </div>
                     <div class="planet-info-item">
-                        <span class="planet-info-label">⚛️ DiÁmetro:</span>
+                        <span class="planet-info-label">📏 Diámetro:</span>
                         <span class="planet-info-value">${planet.diameter}</span>
                     </div>
                     <div class="planet-info-item">
-                        <span class="planet-info-label">⚛️? Temperatura:</span>
+                        <span class="planet-info-label">🌡️ Temperatura:</span>
                         <span class="planet-info-value">${planet.temperature}</span>
                     </div>
                     <div class="planet-info-item">
-                        <span class="planet-info-label">⚛️ ComposiciÓn:</span>
+                        <span class="planet-info-label">🧪 Composición:</span>
                         <span class="planet-info-value">${planet.composition}</span>
                     </div>
                     <div class="planet-info-item">
-                        <span class="planet-info-label">⚛️ Celdas:</span>
+                        <span class="planet-info-label">⬜ Celdas:</span>
                         <span class="planet-info-value">${planet.size} x ${planet.size}</span>
                     </div>
                     ${cellsInfo}
                     <div class="planet-status ${isPlaced ? 'placed' : 'not-placed'}">
-                        ${isPlaced ? '? Colocado' : '? Sin colocar'}
+                        ${isPlaced ? '✅ Colocado' : '❌ Sin colocar'}
                     </div>
                 `;
                 
@@ -940,10 +1043,90 @@
             }, duration);
         }
 
+                function drawSectors(ctx) {
+            const sectorW = CANVAS_SIZE / 3;
+            const sectorH = CANVAS_SIZE / 3;
+            const labels = ['A','B','C','D','E','F','G','H','I'];
+
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = 'black';
+            ctx.shadowBlur = 5;
+            
+            // Vertical lines
+            ctx.beginPath();
+            ctx.moveTo(sectorW, 0); ctx.lineTo(sectorW, CANVAS_SIZE);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(sectorW*2, 0); ctx.lineTo(sectorW*2, CANVAS_SIZE);
+            ctx.stroke();
+
+            // Horizontal lines
+            ctx.beginPath();
+            ctx.moveTo(0, sectorH); ctx.lineTo(CANVAS_SIZE, sectorH);
+            ctx.stroke(); 
+            ctx.beginPath();
+            ctx.moveTo(0, sectorH*2); ctx.lineTo(CANVAS_SIZE, sectorH*2);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.font = 'bold 80px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            for(let i=0; i<9; i++) {
+                const col = i % 3;
+                const row = Math.floor(i / 3);
+                const x = col * sectorW + sectorW/2;
+                const y = row * sectorH + sectorH/2;
+                ctx.fillText(labels[i], x, y);
+            }
+            ctx.restore();
+        }
+
         function markReady() {
             GameState.setTeamPlanets(TEAM, myBoard, myPlanets);
             document.getElementById('ready-btn').disabled = true;
-            showStatus('? Planetas registrados. Esperando al otro equipo...');
+            showStatus('✅ Planetas registrados. Esperando al otro equipo...');
+        }
+
+                function drawSectors(ctx) {
+            const sectorW = CANVAS_SIZE / 3;
+            const sectorH = CANVAS_SIZE / 3;
+            const labels = ['A','B','C','D','E','F','G','H','I'];
+
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 2;
+            
+            // Vertical lines
+            ctx.beginPath();
+            ctx.moveTo(sectorW, 0); ctx.lineTo(sectorW, CANVAS_SIZE);
+            ctx.moveTo(sectorW*2, 0); ctx.lineTo(sectorW*2, CANVAS_SIZE);
+            ctx.stroke();
+
+            // Horizontal lines
+            ctx.beginPath();
+            ctx.moveTo(0, sectorH); ctx.lineTo(CANVAS_SIZE, sectorH);
+            ctx.moveTo(0, sectorH*2); ctx.lineTo(CANVAS_SIZE, sectorH*2);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.font = 'bold 80px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            for(let i=0; i<9; i++) {
+                const col = i % 3;
+                const row = Math.floor(i / 3);
+                const x = col * sectorW + sectorW/2;
+                const y = row * sectorH + sectorH/2;
+                ctx.fillText(labels[i], x, y);
+            }
+            ctx.restore();
         }
 
         function drawPlayerBoard() {
@@ -1022,6 +1205,9 @@
                     ctx.fillRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
                 }
             }
+            drawSectors(ctx);
+        
+            drawSectors(ctx);
         }
 
         function drawAttackBoard() {
@@ -1083,17 +1269,20 @@
                     ctx.fillRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
                 }
             }
+            drawSectors(ctx);
+        
+            drawSectors(ctx);
         }
 
         function handleAttackClick(e) {
             const state = GameState.get();
             if (!state || !state.gameStarted) {
-                document.getElementById('attack-info').textContent = '⚛️ El juego aÚn no ha comenzado';
+                document.getElementById('attack-info').textContent = '⏳ El juego aún no ha comenzado';
                 return;
             }
 
             if (state.currentTurn !== TEAM) {
-                document.getElementById('attack-info').textContent = '? No es tu turno';
+                document.getElementById('attack-info').textContent = '⛔ No es tu turno';
                 return;
             }
 
@@ -1144,7 +1333,7 @@
                 resultDiv.className = 'reward-animation';
                 GameState.addDarkMatter(TEAM, 10);
             } else {
-                resultDiv.innerHTML = '<span style="color: #ff0000;">? Incorrecto</span><br>No se gana Materia Oscura';
+                resultDiv.innerHTML = '<span style="color: #ff0000;">❌ Incorrecto</span><br>No se gana Materia Oscura';
             }
             
             GameState.markQuestionUsed(TEAM, questionIndex);
@@ -1196,18 +1385,28 @@
             const shopContainer = document.getElementById('weapon-shop');
             shopContainer.innerHTML = '';
             
+            const weaponImgMap = {
+                'laser-pequeño': 'img/armas/laser-pequeno.jpg',
+                'laser-mediano': 'img/armas/laser-mediano.jpg',
+                'laser-grande': 'img/armas/laser-grande.jpg',
+                'rayo-destructor': 'img/armas/rayo-destructor.jpg',
+                'bomba-planetaria': 'img/armas/bomba-planetaria.gif',
+                'sonda-espionaje': 'img/armas/sonda-espionaje.jpg'
+            };
             Object.entries(WEAPONS).forEach(([type, weapon]) => {
                 const card = document.createElement('div');
                 card.className = 'weapon-card';
                 if (state.team2Weapon === type) {
                     card.classList.add('active');
                 }
-                
+                const imgSrc = weaponImgMap[type];
+                const equippedBadge = state.team2Weapon === type ? '<div style="font-size:0.7em;color:#ff6600;font-weight:bold;">✅ EQUIPADA</div>' : '';
                 card.innerHTML = `
-                    <div class="weapon-icon">${weapon.icon}</div>
-                    <div style="font-size: 1.1em; font-weight: bold;">${weapon.name}</div>
-                    <div style="margin: 10px 0; font-size: 0.9em;">${weapon.description}</div>
-                    <div class="weapon-cost">${weapon.cost > 0 ? weapon.cost + ' ⚛️' : 'GRATIS'}</div>
+                    ${imgSrc ? `<img class="weapon-card-img" src="${imgSrc}" alt="${weapon.name}" onerror="this.style.display='none'">` : `<div class="weapon-icon">${weapon.icon}</div>`}
+                    <div class="weapon-card-name">${weapon.name}</div>
+                    <div class="weapon-card-desc">${weapon.description}</div>
+                    <div class="weapon-cost">${weapon.cost > 0 ? weapon.cost + ' ⚫' : 'GRATIS'}</div>
+                    ${equippedBadge}
                 `;
                 
                 if (weapon.cost === 0 || state.team2DarkMatter >= weapon.cost) {
@@ -1245,22 +1444,24 @@
             document.getElementById('current-weapon').textContent = `${weapon.icon} ${weapon.name}`;            renderInventory();
         }
 
+                
         function renderInventory() {
             const state = GameState.get();
-            const currentWeapon = state.team2Weapon || 'laser-peque\u00f1o';
-            const darkMatter = state.team2DarkMatter || 0;
+            const darkMatter = (TEAM === 'team1' ? state.team1DarkMatter : state.team2DarkMatter) || 0;
+            const currentWeapon = TEAM === 'team1' ? state.team1Weapon : state.team2Weapon;
+            
             const container = document.getElementById('weapons-grid-container');
+            if (!container) return;
+            container.innerHTML = '';
             
             const weaponImages = {
-                'laser-pequeÑo': 'img/armas/laser-pequeno.jpg',
+                'laser-pequeño': 'img/armas/laser-pequeno.jpg',
                 'laser-mediano': 'img/armas/laser-mediano.jpg',
                 'laser-grande': 'img/armas/laser-grande.jpg',
                 'rayo-destructor': 'img/armas/rayo-destructor.jpg',
                 'bomba-planetaria': 'img/armas/bomba-planetaria.gif',
                 'sonda-espionaje': 'img/armas/sonda-espionaje.jpg'
             };
-            
-            container.innerHTML = '';
             
             Object.keys(WEAPONS).forEach(weaponKey => {
                 const weapon = WEAPONS[weaponKey];
@@ -1269,26 +1470,79 @@
                 const isLocked = weapon.cost > 0 && !canAfford && !isEquipped;
                 
                 const weaponDiv = document.createElement('div');
-                weaponDiv.className = 'weapon-mini-card';
-                weaponDiv.style.backgroundImage = `url('${weaponImages[weaponKey]}')`;
-                if (isEquipped) weaponDiv.classList.add('equipped');
-                if (isLocked) weaponDiv.classList.add('locked');
-                
-                weaponDiv.innerHTML = `
-                    ${isEquipped ? '<div class="weapon-mini-badge">\u2705</div>' : ''}
-                    ${isLocked ? '<div class="weapon-mini-badge">\ud83d\udd12</div>' : ''}
-                    <div class="weapon-mini-icon">${weapon.icon}</div>
-                    <div class="weapon-mini-name">${weapon.name}</div>
-                    <div class="weapon-mini-cost">${weapon.cost > 0 ? `${weapon.cost} \u26c6\ufe0f` : 'Gratis'}</div>
-                `;
-                
-                if (!isLocked && !isEquipped) {
-                    weaponDiv.onclick = () => selectWeaponFromInventory(weaponKey, weapon.cost);
+                weaponDiv.className = 'compact-weapon-card';
+
+                // Styles
+                weaponDiv.style.width = '32px';
+                weaponDiv.style.height = '32px';
+                weaponDiv.style.borderRadius = '4px';
+                weaponDiv.style.backgroundSize = 'cover';
+                weaponDiv.style.backgroundImage = 'url(' + (weaponImages[weaponKey] || '') + ')';
+                weaponDiv.style.margin = '0 2px';
+                weaponDiv.style.position = 'relative';
+
+                // Team color border
+                const teamColor = TEAM === 'team1' ? '#00ff00' : '#ff6600';
+
+                if (isEquipped) {
+                    weaponDiv.style.border = '2px solid ' + teamColor;
+                    weaponDiv.style.boxShadow = '0 0 5px ' + teamColor;
+                } else if (isLocked) {
+                    weaponDiv.style.opacity = '0.5';
+                    weaponDiv.style.cursor = 'not-allowed';
+                    weaponDiv.style.border = '1px solid #555';
+                    const lock = document.createElement('div');
+                    lock.textContent = '\uD83D\uDD12';
+                    lock.style.position = 'absolute';
+                    lock.style.fontSize = '12px';
+                    lock.style.top = '50%';
+                    lock.style.left = '50%';
+                    lock.style.transform = 'translate(-50%, -50%)';
+                    weaponDiv.appendChild(lock);
+                } else {
+                    weaponDiv.style.border = '1px solid #888';
+                    weaponDiv.style.cursor = 'pointer';
+                    weaponDiv.onclick = function() { selectWeaponFromInventory(weaponKey, weapon.cost); };
                 }
-                
+
+                // Rich hover tooltip
+                const cellCount = weapon.pattern.length;
+                const costLabel = weapon.cost > 0 ? weapon.cost + ' \u26AB Materia Oscura' : 'GRATIS';
+                const equippedLine = isEquipped ? '<div class="weapon-tooltip-equipped">\u2705 EQUIPADA</div>' : '';
+                const lockedLine = isLocked ? '<div class="weapon-tooltip-locked">\uD83D\uDD12 Necesitas ' + weapon.cost + ' \u26AB</div>' : '';
+                const imgSrc = weaponImages[weaponKey];
+                const imgTag = imgSrc ? '<img class="weapon-tooltip-img" src="' + imgSrc + '" alt="' + weapon.name + '">' : '';
+                const tooltip = document.createElement('div');
+                tooltip.className = 'weapon-arsenal-tooltip';
+                tooltip.style.borderColor = teamColor;
+                tooltip.innerHTML = imgTag +
+                    '<div class="weapon-tooltip-name">' + weapon.icon + ' ' + weapon.name + '</div>' +
+                    '<div class="weapon-tooltip-row">\uD83D\uDCDD ' + weapon.description + '</div>' +
+                    '<div class="weapon-tooltip-row">\uD83C\uDFAF Celdas afectadas: ' + cellCount + '</div>' +
+                    '<div class="weapon-tooltip-cost">\u26AB Coste: ' + costLabel + '</div>' +
+                    equippedLine + lockedLine;
+                document.body.appendChild(tooltip);
+
+                // Position tooltip near cursor on hover
+                weaponDiv.addEventListener('mouseenter', function(e) {
+                    const rect = weaponDiv.getBoundingClientRect();
+                    tooltip.style.display = 'block';
+                    let left = rect.left;
+                    let top = rect.bottom + 8;
+                    // Keep within viewport
+                    if (left + 185 > window.innerWidth) left = window.innerWidth - 193;
+                    if (top + 200 > window.innerHeight) top = rect.top - 8 - tooltip.offsetHeight;
+                    tooltip.style.left = left + 'px';
+                    tooltip.style.top = top + 'px';
+                });
+                weaponDiv.addEventListener('mouseleave', function() {
+                    tooltip.style.display = 'none';
+                });
+
                 container.appendChild(weaponDiv);
             });
         }
+
 
         function selectWeaponFromInventory(weaponType, cost) {
             const state = GameState.get();
@@ -1326,11 +1580,11 @@
             if (winner && !window._winnerSoundPlayed) {
                 window._winnerSoundPlayed = true;
                 if (winner === TEAM) {
-                    showStatus('⚛️ <span style="color: #ff6600;">¡¡VICTORIA!</span> ⚛️', 4000);
+                    showStatus('🏆 <span style="color: #ff6600;">¡¡VICTORIA!</span> 🏆', 4000);
                     SoundEngine.stopMusic();
                     SoundEngine.playVictory();
                 } else {
-                    showStatus('⚛️ <span style="color: #ff0000;">Derrota</span> ⚛️', 4000);
+                    showStatus('💀 <span style="color: #ff0000;">Derrota</span> 💀', 4000);
                     SoundEngine.stopMusic();
                     SoundEngine.playDefeat();
                 }
@@ -1361,6 +1615,7 @@
     </script>
 </body>
 </html>
+
 
 
 
