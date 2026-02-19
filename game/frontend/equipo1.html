@@ -257,7 +257,7 @@
             box-shadow: 0 4px 10px rgba(0, 255, 0, 0.3);
         }
         body {
-            padding-top: 110px;
+            padding-top: 55px;
         }
         .turn-indicator {
             font-size: 0.95em;
@@ -637,7 +637,7 @@
             .session-code-display { font-size: 0.78em; }
             .turn-indicator       { font-size: 0.80em; }
             /* Compensar la altura del panel fijo */
-            body { padding-top: 170px !important; }
+            body { padding-top: 90px !important; }
 
             /* Arsenal de armas */
             .weapons-header { padding: 5px 6px; }
@@ -702,15 +702,15 @@
         @media (max-width: 380px) {
             .weapons-grid { grid-template-columns: repeat(2, 1fr) !important; }
             .controls button { font-size: 0.62em; padding: 4px 6px; }
-            body { padding-top: 190px !important; }
+            body { padding-top: 110px !important; }
         }
     </style>
 </head>
 <body>
     <div class="compact-header-bar" style="position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(0,0,0,0.95); border-bottom:2px solid #00ff00; padding:5px 10px; box-shadow:0 0 20px rgba(0,255,0,0.6);">
-        
-        <!-- Top Row: Title, DM, Sound, Controls, Code -->
-        <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px;">
+        <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px;">
+
+            <!-- Título + Materia Oscura + Sonido -->
             <div style="display:flex; align-items:center; gap:8px;">
                 <h1 style="margin:0; font-size:1.1em; color:#00ff00; text-shadow:0 0 5px #00ff00; white-space:nowrap;">⚡ EQUIPO 1</h1>
                 <div class="dark-matter-display" style="padding:2px 6px; font-size:0.85em; border:1px solid #8a2be2; background:rgba(138,43,226,0.15); border-radius:4px; display:flex; align-items:center;">
@@ -720,22 +720,21 @@
                 </div>
             </div>
 
+            <!-- Botones de acción -->
             <div class="controls" style="display:flex; gap:5px; margin:0;">
                 <button id="place-planets-btn" onclick="placePlanets()" style="padding:4px 8px; font-size:0.85em; margin:0;">🪐 Colocar</button>
                 <button id="ready-btn" onclick="markReady()" disabled style="padding:4px 8px; font-size:0.85em; margin:0;">✅ Listo</button>
                 <button id="shop-btn" onclick="openShop()" style="padding:4px 8px; font-size:0.85em; margin:0;">🛒 Tienda</button>
             </div>
 
-            <div id="session-code-display" class="session-code-display" style="font-size:0.9em; margin:0; color:#00ff00; font-weight:bold;">Cód: ——</div>
-        </div>
-
-        <!-- Bottom Row: Weapons - Single Line -->
-        <div style="margin-top:5px; padding-top:5px; border-top:1px solid #333; display:flex; align-items:center; gap:15px;">
-            <div style="display:flex; align-items:center; gap:10px; white-space:nowrap;">
-                <h3 style="margin:0; font-size:0.95em; color:#00ff00;">⚔️ Arsenal</h3>
-                <span style="font-size:0.85em; color:#aaa;">Arma: <span id="current-weapon" style="color:#00ff00; font-weight:bold;">🔹 Láser Pequeño</span></span>
+            <!-- Arsenal inline -->
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:nowrap;">
+                <span style="font-size:0.8em; color:#00ff00; white-space:nowrap;">⚔️ <span id="current-weapon" style="font-weight:bold;">🔹 Láser Pequeño</span></span>
+                <div id="weapons-grid-container" style="display:flex; gap:4px; flex-wrap:nowrap;"></div>
             </div>
-            <div id="weapons-grid-container" class="weapons-grid" style="display:flex; gap:5px; flex-wrap:nowrap;"></div>
+
+            <!-- Código de partida -->
+            <div id="session-code-display" class="session-code-display" style="font-size:0.9em; margin:0; color:#00ff00; font-weight:bold;">Cód: ——</div>
         </div>
     </div><div class="main-layout">
         <div class="planets-info-panel">
