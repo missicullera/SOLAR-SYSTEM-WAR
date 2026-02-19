@@ -110,3 +110,27 @@ h3 {
     color: #00ffcc;
     text-shadow: 0 0 10px #00ffcc;
 }
+
+/* ─── Touch friendliness global ─── */
+button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+canvas {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+/* ─── Responsive global (pantallas pequeñas) ─── */
+@media (max-width: 768px) {
+    body { padding: 10px; }
+    h1   { font-size: 1.4em; }
+    h2   { font-size: 1.1em; }
+    h3   { font-size: 1em; }
+    button { padding: 8px 12px; font-size: 0.9em; min-height: 40px; }
+    .game-container { flex-direction: column; gap: 12px; }
+    canvas { max-width: 100% !important; height: auto !important; }
+    .board-section { min-width: 0 !important; max-width: 100% !important; width: 100%; }
+    .planets-list { max-width: 100%; }
+    #planets-info { grid-template-columns: repeat(2, 1fr); }
+}
