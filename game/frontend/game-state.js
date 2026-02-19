@@ -4,7 +4,7 @@
 const GameState = {
     storageKey: 'gameState',
     sessionCode: null,
-    apiBase: localStorage.getItem('gameApiBase') || 'http://localhost:8080/api',
+    apiBase: localStorage.getItem('gameApiBase') || 'https://solar-system-war-1.onrender.com/api',
     cache: null,
     syncTimer: null,
     syncIntervalMs: 1000,

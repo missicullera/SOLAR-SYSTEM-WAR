@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Audio - Solar System War</title>
+    <style>
+        body { background: #000; color: #00ffcc; font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; }
+        h1 { text-shadow: 0 0 20px #00ffcc; }
+        button { background: transparent; border: 2px solid #00ffcc; color: #00ffcc; padding: 12px 28px; font-size: 1.1em; font-family: monospace; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        button:hover { background: rgba(0,255,204,0.15); box-shadow: 0 0 15px #00ffcc; }
+        .row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+        p { opacity: 0.6; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>🔊 Test de Audio</h1>
+    <p>Haz clic en cualquier botón para escuchar el sonido.</p>
+    <div class="row">
+        <button onclick="SoundEngine.startMusic()">🎵 Iniciar Música</button>
+        <button onclick="SoundEngine.stopMusic()">⏹ Detener Música</button>
+        <button onclick="SoundEngine.toggleMute()">🔇 Silenciar/Activar</button>
+    </div>
+    <div class="row">
+        <button onclick="SoundEngine.playExplosion()">💥 Explosión (impacto)</button>
+        <button onclick="SoundEngine.playMiss()">💧 Agua (fallo)</button>
+        <button onclick="SoundEngine.playVictory()">🏆 Victoria</button>
+        <button onclick="SoundEngine.playDefeat()">😢 Derrota</button>
+    </div>
+    <script src="audio.js"></script>
+</body>
+</html>
