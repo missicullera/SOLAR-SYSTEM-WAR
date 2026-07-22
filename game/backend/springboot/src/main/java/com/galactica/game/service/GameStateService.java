@@ -31,28 +31,28 @@ public class GameStateService {
     }
 
     public GameState applyUpdates(String code, Map<String, Object> updates) {
-        GameState state = getOrCreate(code);
-        ObjectNode node = mapper.valueToTree(state);
-        ObjectNode updatesNode = mapper.convertValue(updates, ObjectNode.class);
-        node.setAll(updatesNode);
-        try {
-            GameState merged = mapper.treeToValue(node, GameState.class);
-            merged.setLastUpdate(System.currentTimeMillis());
-            states.put(code, merged);
-            return merged;
-        } catch (Exception e) {
-            state.setLastUpdate(System.currentTimeMillis());
-            states.put(code, state);
-            return state;
-        }
+        return states.compute(code, (key, current) -> {
+            GameState state = current == null ? createInitialState() : current;
+            ObjectNode node = mapper.valueToTree(state);
+            ObjectNode updatesNode = mapper.convertValue(updates, ObjectNode.class);
+            node.setAll(updatesNode);
+            try {
+                GameState merged = mapper.treeToValue(node, GameState.class);
+                merged.setLastUpdate(System.currentTimeMillis());
+                return merged;
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Invalid game state update", e);
+            }
+        });
     }
 
     public GameState startGame(String code) {
-        GameState state = getOrCreate(code);
-        state.setGameStarted(true);
-        state.setLastUpdate(System.currentTimeMillis());
-        states.put(code, state);
-        return state;
+        return states.compute(code, (key, current) -> {
+            GameState state = current == null ? createInitialState() : current;
+            state.setGameStarted(true);
+            state.setLastUpdate(System.currentTimeMillis());
+            return state;
+        });
     }
 
     private GameState createInitialState() {
@@ -69,6 +69,9 @@ public class GameStateService {
         state.setTeam2Weapon("laser-pequeño");
         state.setTeam1UsedQuestions(List.of());
         state.setTeam2UsedQuestions(List.of());
+        state.setTeam1SpyReveals(new int[2500]);
+        state.setTeam2SpyReveals(new int[2500]);
+        state.setCustomQuestions(List.of());
         state.setPendingQuestion(null);
         state.setCurrentTurn("team1");
         state.setGameStarted(false);

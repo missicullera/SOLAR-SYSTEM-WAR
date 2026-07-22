@@ -645,13 +645,23 @@
 
         // ── Load & save ──────────────────────────────────────────────
         function applyQuestions(questions, filename) {
-            localStorage.setItem('custom_questions', JSON.stringify(questions));
-            showStatus(`✅ ${questions.length} preguntas cargadas desde "${filename}". Los equipos las usarán al recargar.`, '#00ffcc');
+            GameState.update({
+                customQuestions: questions,
+                team1UsedQuestions: [],
+                team2UsedQuestions: []
+            });
+            localStorage.removeItem('custom_questions');
+            showStatus(`✅ ${questions.length} preguntas cargadas desde "${filename}" y compartidas con los equipos.`, '#00ffcc');
             renderPreview(questions);
         }
 
         function clearQuestions() {
             if (!confirm('¿Borrar la batería personalizada y volver a las preguntas por defecto?')) return;
+            GameState.update({
+                customQuestions: [],
+                team1UsedQuestions: [],
+                team2UsedQuestions: []
+            });
             localStorage.removeItem('custom_questions');
             showStatus('🗑️ Preguntas personalizadas eliminadas. Se usarán las preguntas por defecto.', '#ffaa00');
             document.getElementById('csv-preview').innerHTML = '';
@@ -742,19 +752,17 @@
             URL.revokeObjectURL(url);
         }
 
-        // ── Show already-loaded questions on page load ────────────────
-        (function() {
-            try {
-                const stored = localStorage.getItem('custom_questions');
-                if (stored) {
-                    const q = JSON.parse(stored);
-                    if (q && q.length) {
-                        showStatus(`ℹ️ ${q.length} preguntas personalizadas activas en este navegador.`, '#00ffcc');
-                        renderPreview(q);
-                    }
-                }
-            } catch(e) {}
-        })();
+        // ── Show questions stored in the shared session ───────────────
+        function syncQuestionPreview() {
+            const questions = GameState.get()?.customQuestions;
+            if (Array.isArray(questions) && questions.length > 0) {
+                showStatus(`ℹ️ ${questions.length} preguntas personalizadas activas en esta partida.`, '#00ffcc');
+                renderPreview(questions);
+            }
+        }
+
+        syncQuestionPreview();
+        GameState.onChange(syncQuestionPreview);
     </script>
 </body>
 </html>

@@ -161,6 +161,15 @@ let QUESTIONS = [
     }
 ];
 
+const DEFAULT_QUESTIONS = QUESTIONS.map(cloneQuestion);
+
+function cloneQuestion(question) {
+    return {
+        ...question,
+        options: Array.isArray(question.options) ? [...question.options] : []
+    };
+}
+
 // Función para obtener una pregunta aleatoria
 function getRandomQuestion() {
     const index = Math.floor(Math.random() * QUESTIONS.length);
@@ -177,17 +186,15 @@ function getNewQuestion(usedIndices = []) {
     return { ...question, index };
 }
 
-// Si el profesor subió una batería personalizada, sustituir las preguntas por defecto
-(function loadCustomQuestions() {
-    try {
-        const stored = localStorage.getItem('custom_questions');
-        if (stored) {
-            const custom = JSON.parse(stored);
-            if (Array.isArray(custom) && custom.length > 0) {
-                QUESTIONS = custom;
-            }
-        }
-    } catch (e) {
-        console.warn('No se pudieron cargar las preguntas personalizadas:', e);
-    }
-})();
+// Mantener la batería de preguntas alineada con la sesión compartida.
+function syncQuestionsFromGameState() {
+    const state = typeof GameState !== 'undefined' ? GameState.get() : null;
+    const custom = Array.isArray(state?.customQuestions) ? state.customQuestions : [];
+    const source = custom.length > 0 ? custom : DEFAULT_QUESTIONS;
+    QUESTIONS = source.map(cloneQuestion);
+}
+
+syncQuestionsFromGameState();
+if (typeof GameState !== 'undefined') {
+    GameState.onChange(syncQuestionsFromGameState);
+}
