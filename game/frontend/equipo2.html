@@ -823,7 +823,7 @@
               diameter: '12,742 km', temperature: '-88°C a 58°C', composition: 'NitrÓgeno, OxÍgeno, Agua', distanceFromSun: '149.6 millones km', order: 3 },
             { name: 'Marte', size: 2, color: '#CD5C5C', image: 'img/planetas/marte.jpg',
               diameter: '6,779 km', temperature: '-140°C a 20°C', composition: 'ÓÓxido de hierro, CO2', distanceFromSun: '227.9 millones km', order: 4 },
-            { name: 'JÚpiter', size: 20, color: '#C88B3A', image: 'img/planetas/jupiter.jpg',
+            { name: 'Júpiter', size: 20, color: '#C88B3A', image: 'img/planetas/jupiter.jpg',
               diameter: '139,820 km', temperature: '-108°C', composition: 'HidrÓgeno, Helio', distanceFromSun: '778.5 millones km', order: 5 },
             { name: 'Saturno', size: 17, color: '#FAD5A5', image: 'img/planetas/saturno.jpg',
               diameter: '116,460 km', temperature: '-138°C', composition: 'HidrÓgeno, Helio', distanceFromSun: '1,434 millones km', order: 6 },
@@ -1348,7 +1348,7 @@
         function executeAttack() {
             const { gridX, gridY } = window.pendingAttack;
             const state = GameState.get();
-            const weaponType = state.team2Weapon || 'laser-pequeÑo';
+            const weaponType = state.team2Weapon || 'laser-pequeño';
             const weapon = WEAPONS[weaponType];
 
             // -- Sonda de espionaje: revela sin atacar --
@@ -1440,7 +1440,7 @@
 
         function updateWeaponDisplay() {
             const state = GameState.get();
-            const weaponType = state.team2Weapon || 'laser-pequeÑo';
+            const weaponType = state.team2Weapon || 'laser-pequeño';
             const weapon = WEAPONS[weaponType];
             document.getElementById('current-weapon').textContent = `${weapon.icon} ${weapon.name}`;            renderInventory();
         }

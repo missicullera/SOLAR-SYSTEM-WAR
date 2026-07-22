@@ -8,15 +8,17 @@ const GameState = {
     cache: null,
     syncTimer: null,
     syncIntervalMs: 1000,
+    pendingWrites: 0,
     // Inicializar el estado del juego
     init() {
         const savedCode = localStorage.getItem('gameSessionCode');
         if (savedCode) {
             this.setSession(savedCode);
+            return;
         }
 
         if (!localStorage.getItem(this.storageKey)) {
-            this.reset();
+            this.saveLocalState(this.createInitialState());
         }
 
         this.cache = this.getLocalState();
@@ -31,7 +33,7 @@ const GameState = {
         localStorage.setItem('gameSessionCode', cleanCode);
 
         if (!localStorage.getItem(this.storageKey)) {
-            this.reset();
+            this.saveLocalState(this.createInitialState(0));
         }
 
         this.cache = this.getLocalState();
@@ -44,7 +46,7 @@ const GameState = {
         this.storageKey = 'gameState';
         localStorage.removeItem('gameSessionCode');
         if (!localStorage.getItem(this.storageKey)) {
-            this.reset();
+            this.saveLocalState(this.createInitialState());
         }
         this.cache = this.getLocalState();
     },
@@ -58,9 +60,8 @@ const GameState = {
         return code;
     },
 
-    // Resetear el estado del juego
-    reset() {
-        const initialState = {
+    createInitialState(lastUpdate = Date.now()) {
+        return {
             team1Board: new Array(2500).fill(0), // 50x50 = 2500
             team2Board: new Array(2500).fill(0),
             team1Attacks: new Array(2500).fill(0), // 0=no atacado, 1=agua, 2=impacto
@@ -75,20 +76,50 @@ const GameState = {
             team2UsedQuestions: [], // Preguntas ya usadas por equipo 2
             team1SpyReveals: new Array(2500).fill(0), // 0=sin escanear 1=vacío 2=planeta detectado
             team2SpyReveals: new Array(2500).fill(0),
+            customQuestions: [],
             pendingQuestion: null, // Pregunta pendiente de responder
             currentTurn: 'team1',
             gameStarted: false,
-            lastUpdate: Date.now()
+            lastUpdate
         };
-        localStorage.setItem(this.storageKey, JSON.stringify(initialState));
-        this.cache = initialState;
-        this.persistState(initialState);
+    },
+
+    normalizeState(state) {
+        const defaults = this.createInitialState(0);
+        return {
+            ...defaults,
+            ...state,
+            team1Board: Array.isArray(state?.team1Board) ? state.team1Board : defaults.team1Board,
+            team2Board: Array.isArray(state?.team2Board) ? state.team2Board : defaults.team2Board,
+            team1Attacks: Array.isArray(state?.team1Attacks) ? state.team1Attacks : defaults.team1Attacks,
+            team2Attacks: Array.isArray(state?.team2Attacks) ? state.team2Attacks : defaults.team2Attacks,
+            team1SpyReveals: Array.isArray(state?.team1SpyReveals) ? state.team1SpyReveals : defaults.team1SpyReveals,
+            team2SpyReveals: Array.isArray(state?.team2SpyReveals) ? state.team2SpyReveals : defaults.team2SpyReveals,
+            customQuestions: Array.isArray(state?.customQuestions) ? state.customQuestions : []
+        };
+    },
+
+    saveLocalState(state) {
+        localStorage.setItem(this.storageKey, JSON.stringify(state));
+        this.cache = state;
+    },
+
+    // Resetear el estado del juego
+    reset() {
+        const initialState = this.createInitialState();
+        this.saveLocalState(initialState);
+        this.resetRemote();
         window.dispatchEvent(new Event('gamestatechanged'));
     },
 
     getLocalState() {
         const state = localStorage.getItem(this.storageKey);
-        return state ? JSON.parse(state) : null;
+        if (!state) return null;
+        try {
+            return this.normalizeState(JSON.parse(state));
+        } catch (e) {
+            return null;
+        }
     },
 
     // Obtener el estado completo
@@ -99,34 +130,21 @@ const GameState = {
         return this.cache;
     },
 
-    // Actualizar el estado completo
-    set(newState) {
-        newState.lastUpdate = Date.now();
-        localStorage.setItem(this.storageKey, JSON.stringify(newState));
-        this.cache = newState;
-        this.persistState(newState);
-        window.dispatchEvent(new Event('gamestatechanged'));
-    },
-
     // Actualizar solo una parte del estado
     update(updates) {
-        const state = this.get();
-        Object.assign(state, updates);
-        this.set(state);
+        const state = { ...this.get(), ...updates };
+        this.saveLocalState(state);
         this.persistUpdates(updates);
+        window.dispatchEvent(new Event('gamestatechanged'));
     },
 
     // Colocar planetas de un equipo
     setTeamPlanets(team, board, planets) {
-        const state = this.get();
         if (team === 'team1') {
-            state.team1Board = board;
-            state.team1Planets = planets;
+            this.update({ team1Board: board, team1Planets: planets });
         } else {
-            state.team2Board = board;
-            state.team2Planets = planets;
+            this.update({ team2Board: board, team2Planets: planets });
         }
-        this.set(state);
     },
 
     // Escanear un sector con la sonda (sin atacar, cambia el turno)
@@ -134,22 +152,26 @@ const GameState = {
         const state = this.get();
         const targetBoard = spyingTeam === 'team1' ? state.team2Board : state.team1Board;
         const revealsKey  = spyingTeam === 'team1' ? 'team1SpyReveals' : 'team2SpyReveals';
-        if (!state[revealsKey]) state[revealsKey] = new Array(2500).fill(0);
+        const reveals = Array.isArray(state[revealsKey])
+            ? [...state[revealsKey]]
+            : new Array(2500).fill(0);
+        const attacksKey = spyingTeam === 'team1' ? 'team1Attacks' : 'team2Attacks';
 
         let planetsFound = 0;
         for (const idx of targetIndices) {
             if (idx < 0 || idx >= 2500) continue;
             // No sobreescribir ataques ya realizados
-            const attacksKey = spyingTeam === 'team1' ? 'team1Attacks' : 'team2Attacks';
             if (state[attacksKey][idx] !== 0) continue;
             const hasPlanet = targetBoard[idx] === 1;
-            state[revealsKey][idx] = hasPlanet ? 2 : 1;
+            reveals[idx] = hasPlanet ? 2 : 1;
             if (hasPlanet) planetsFound++;
         }
 
         // La sonda gasta el turno
-        state.currentTurn = spyingTeam === 'team1' ? 'team2' : 'team1';
-        this.set(state);
+        this.update({
+            [revealsKey]: reveals,
+            currentTurn: spyingTeam === 'team1' ? 'team2' : 'team1'
+        });
         return {
             valid: true,
             planetsFound,
@@ -161,7 +183,8 @@ const GameState = {
     attack(attackingTeam, targetIndices) {
         const state = this.get();
         const targetBoard = attackingTeam === 'team1' ? state.team2Board : state.team1Board;
-        const attacksArray = attackingTeam === 'team1' ? state.team1Attacks : state.team2Attacks;
+        const attacksKey = attackingTeam === 'team1' ? 'team1Attacks' : 'team2Attacks';
+        const attacksArray = [...state[attacksKey]];
         
         // Convertir a array si es un solo índice
         if (!Array.isArray(targetIndices)) {
@@ -191,15 +214,11 @@ const GameState = {
             }
         }
         
-        if (attackingTeam === 'team1') {
-            state.team1Attacks = attacksArray;
-        } else {
-            state.team2Attacks = attacksArray;
-        }
-        
         // Cambiar turno
-        state.currentTurn = attackingTeam === 'team1' ? 'team2' : 'team1';
-        this.set(state);
+        this.update({
+            [attacksKey]: attacksArray,
+            currentTurn: attackingTeam === 'team1' ? 'team2' : 'team1'
+        });
         
         if (hits > 0 && misses > 0) {
             return { valid: true, hit: true, hits, misses, message: `¡${hits} IMPACTO(S)! ${misses} agua(s)` };
@@ -213,8 +232,18 @@ const GameState = {
     // Verificar si hay un ganador
     checkWinner() {
         const state = this.get();
-        const team1Destroyed = !state.team1Board.includes(1);
-        const team2Destroyed = !state.team2Board.includes(1);
+        if (!state?.gameStarted) return null;
+
+        const team1Ready = state.team1Board.includes(1);
+        const team2Ready = state.team2Board.includes(1);
+        if (!team1Ready || !team2Ready) return null;
+
+        const team1Destroyed = state.team1Board.every(
+            (cell, index) => cell !== 1 || state.team2Attacks[index] === 2
+        );
+        const team2Destroyed = state.team2Board.every(
+            (cell, index) => cell !== 1 || state.team1Attacks[index] === 2
+        );
         
         if (team1Destroyed) {
             return 'team2';
@@ -232,12 +261,8 @@ const GameState = {
     // Agregar Materia Oscura a un equipo
     addDarkMatter(team, amount) {
         const state = this.get();
-        if (team === 'team1') {
-            state.team1DarkMatter += amount;
-        } else {
-            state.team2DarkMatter += amount;
-        }
-        this.set(state);
+        const key = team === 'team1' ? 'team1DarkMatter' : 'team2DarkMatter';
+        this.update({ [key]: (state[key] || 0) + amount });
     },
 
     // Comprar un arma
@@ -250,13 +275,16 @@ const GameState = {
         }
         
         if (team === 'team1') {
-            state.team1DarkMatter -= cost;
-            state.team1Weapon = weaponType;
+            this.update({
+                team1DarkMatter: darkMatter - cost,
+                team1Weapon: weaponType
+            });
         } else {
-            state.team2DarkMatter -= cost;
-            state.team2Weapon = weaponType;
+            this.update({
+                team2DarkMatter: darkMatter - cost,
+                team2Weapon: weaponType
+            });
         }
-        this.set(state);
         return { success: true, message: `Arma ${weaponType} comprada` };
     },
 
@@ -273,60 +301,62 @@ const GameState = {
     // Marcar pregunta como usada
     markQuestionUsed(team, questionIndex) {
         const state = this.get();
-        if (team === 'team1') {
-            if (!state.team1UsedQuestions) state.team1UsedQuestions = [];
-            if (!state.team1UsedQuestions.includes(questionIndex)) {
-                state.team1UsedQuestions.push(questionIndex);
-            }
-        } else {
-            if (!state.team2UsedQuestions) state.team2UsedQuestions = [];
-            if (!state.team2UsedQuestions.includes(questionIndex)) {
-                state.team2UsedQuestions.push(questionIndex);
-            }
-        }
-        this.set(state);
-    },
-
-    async persistState(state) {
-        if (!this.sessionCode) return;
-        try {
-            await fetch(`${this.apiBase}/game/${this.sessionCode}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(state)
-            });
-        } catch (e) {
-            // Fallback silencioso si el backend no está disponible
-        }
+        const key = team === 'team1' ? 'team1UsedQuestions' : 'team2UsedQuestions';
+        const usedQuestions = Array.isArray(state[key]) ? [...state[key]] : [];
+        if (!usedQuestions.includes(questionIndex)) usedQuestions.push(questionIndex);
+        this.update({ [key]: usedQuestions });
     },
 
     async persistUpdates(updates) {
         if (!this.sessionCode) return;
+        this.pendingWrites++;
         try {
-            await fetch(`${this.apiBase}/game/${this.sessionCode}`, {
+            const res = await fetch(`${this.apiBase}/game/${this.sessionCode}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updates)
             });
+            if (res.ok) this.applyRemoteState(await res.json());
+        } catch (e) {
+            // Fallback silencioso si el backend no está disponible
+        } finally {
+            this.pendingWrites--;
+        }
+    },
+
+    async resetRemote() {
+        if (!this.sessionCode) return;
+        this.pendingWrites++;
+        try {
+            const res = await fetch(`${this.apiBase}/game/${this.sessionCode}/reset`, {
+                method: 'POST'
+            });
+            if (res.ok) this.applyRemoteState(await res.json(), true);
+        } catch (e) {
+            // Fallback silencioso si el backend no está disponible
+        } finally {
+            this.pendingWrites--;
+        }
+    },
+
+    async syncFromServer() {
+        if (!this.sessionCode || this.pendingWrites > 0) return;
+        try {
+            const res = await fetch(`${this.apiBase}/game/${this.sessionCode}`);
+            if (!res.ok) return;
+            const remote = await res.json();
+            this.applyRemoteState(remote);
         } catch (e) {
             // Fallback silencioso si el backend no está disponible
         }
     },
 
-    async syncFromServer() {
-        if (!this.sessionCode) return;
-        try {
-            const res = await fetch(`${this.apiBase}/game/${this.sessionCode}`);
-            if (!res.ok) return;
-            const remote = await res.json();
-            const local = this.get();
-            if (!local || (remote.lastUpdate && remote.lastUpdate > (local.lastUpdate || 0))) {
-                localStorage.setItem(this.storageKey, JSON.stringify(remote));
-                this.cache = remote;
-                window.dispatchEvent(new Event('gamestatechanged'));
-            }
-        } catch (e) {
-            // Fallback silencioso si el backend no está disponible
+    applyRemoteState(remote, force = false) {
+        const normalized = this.normalizeState(remote);
+        const local = this.get();
+        if (force || !local || (normalized.lastUpdate || 0) > (local.lastUpdate || 0)) {
+            this.saveLocalState(normalized);
+            window.dispatchEvent(new Event('gamestatechanged'));
         }
     },
 

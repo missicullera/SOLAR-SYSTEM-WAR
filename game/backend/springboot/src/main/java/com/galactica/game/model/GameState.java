@@ -16,6 +16,9 @@ public class GameState {
     private String team2Weapon;
     private List<Integer> team1UsedQuestions;
     private List<Integer> team2UsedQuestions;
+    private int[] team1SpyReveals;
+    private int[] team2SpyReveals;
+    private List<Map<String, Object>> customQuestions;
     private Object pendingQuestion;
     private String currentTurn;
     private boolean gameStarted;
@@ -115,6 +118,30 @@ public class GameState {
 
     public void setTeam2UsedQuestions(List<Integer> team2UsedQuestions) {
         this.team2UsedQuestions = team2UsedQuestions;
+    }
+
+    public int[] getTeam1SpyReveals() {
+        return team1SpyReveals;
+    }
+
+    public void setTeam1SpyReveals(int[] team1SpyReveals) {
+        this.team1SpyReveals = team1SpyReveals;
+    }
+
+    public int[] getTeam2SpyReveals() {
+        return team2SpyReveals;
+    }
+
+    public void setTeam2SpyReveals(int[] team2SpyReveals) {
+        this.team2SpyReveals = team2SpyReveals;
+    }
+
+    public List<Map<String, Object>> getCustomQuestions() {
+        return customQuestions;
+    }
+
+    public void setCustomQuestions(List<Map<String, Object>> customQuestions) {
+        this.customQuestions = customQuestions;
     }
 
     public Object getPendingQuestion() {
